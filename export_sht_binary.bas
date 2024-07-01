@@ -1,4 +1,10 @@
-'This File Writes and excel file to Binary Format that can be read by any programming language
+'This File Writes Data to a Structure from an excel sheet, and then writes the structure data to Binary Format that can be read by any programming language in the
+'same order as it it written using a single byte number before every string to indicate length (<255 characters in this program, otherwise would need to change
+'cbyte to  int)
+
+' Written by T. Sciple
+' v03, 6/30/2024
+
 
 Option Explicit
 
