@@ -6,8 +6,7 @@ Option Explicit
 ' - place a list within the workbook where this code is placed that contains a named range for the list named 'myListRng'
 ' - create a named range desired output location named 'outputStartLoc'
 '
-'
-' by Tony Sciple, 8/2/2024
+' last update cleanup by Tony Sciple, 8/2/2024
 
 Public Sub main()
 
@@ -53,7 +52,7 @@ End Sub
 Sub ReadNamedRangeToAry1D(ByRef myAry As Variant, _
                               ByVal namedRangeStr As String)
                                 
-    'This Sub receives an array from caller passed by reference and redimensions the array
+    'This Sub receives an array from caller passed by reference and re-dimensions the array
     ' to match the number of elements in the named range given
 
     ' Set the named range
@@ -65,7 +64,7 @@ Sub ReadNamedRangeToAry1D(ByRef myAry As Variant, _
     count = namedRange.count
     ReDim myAry(0 To count - 1)
         
-    'Loop thru each cell in the range and read the values into the redimsioned array
+    'Loop thru each cell in the range and read the values into the re-dimensioned array
     Dim i As Long
     Dim cell As Variant
    
@@ -79,7 +78,6 @@ End Sub
 Private Sub SortAryAtoZ(ByRef myAry As Variant)
     ' This is a basic bubble sort which is straight forward this is good enough relatively for small arrays,
     ' but consider more efficient sort algorithm for larger arrays
-    
     Dim i As Long
     Dim j As Long
     Dim Temp
@@ -130,10 +128,9 @@ End Sub
 
 Private Sub Rem1dAryElements(ByRef myAry As Variant, _
                          ByRef items_to_remove As Variant)
-                
-    'This sub receives an array pased my by refernce and a string array list of element values to remove
+    'Sub receives an array passed by reference and a string array list of element values to remove
    
-    'dim and Initialize a dictionary object
+    'dim and initialize a dictionary object
     Dim dict As Object
     Set dict = CreateObject("Scripting.Dictionary")
     Dim elem As Variant
@@ -160,11 +157,11 @@ Private Sub Rem1dAryElements(ByRef myAry As Variant, _
         End If
     Next elem
     
-    'Now set the 'tmpAry' equal to the values in the array
+    'Now set the 'tmpAry' equal to the dictionary items
     Dim tmpAry As Variant
     tmpAry = dict.items
         
-    'Next reset the array passed by reference to the temporary arry
+    'Next reset the array passed by reference to the temporary array
     myAry = tmpAry
     
     Erase tmpAry
