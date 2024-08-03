@@ -21,7 +21,6 @@ Option Explicit
 '  update T.Sciple, 8/2/2024, scipele@yahoo.com
 
 Public Sub FindLatestRev()
-
     'speedup settings
     Call Speedup
     
@@ -62,13 +61,11 @@ Public Sub FindLatestRev()
     Call Restore
     Erase orig_list
     Erase dwg_list
-
 End Sub
 
 
 Private Sub ReadNamedRangeToAry2D(ByRef myAry As Variant, _
                               ByVal namedRangeStr As String)
-                                
     'This Sub receives an array from caller passed by reference and re-dimensions the array
     ' to match the number of elements in the named range given
 
@@ -81,7 +78,6 @@ End Sub
 
 
 Private Sub highlightOldRevs(orList, dwg_list)
-
     Dim highlightRow As Variant
     Dim i, j As Integer
     Dim dontHighlightFlag As Boolean
@@ -146,7 +142,6 @@ End Function
 
 Private Sub RemoveOldRevs(tmpList As Variant)
     Dim i As Integer
-    
     'Create a Loop to go thru each element of the array
     For i = LBound(tmpList, 1) + 1 To UBound(tmpList, 1)
         If tmpList(i, 1) = tmpList(i + 1, 1) Then
@@ -156,7 +151,6 @@ Private Sub RemoveOldRevs(tmpList As Variant)
                 Call RemTwoDimAryElem(tmpList, "")
                 'move back to recheck item when element is deleted
                 i = i - 1
-            
             Else
                 tmpList(i, 1) = ""
                 tmpList(i, 2) = ""
@@ -167,13 +161,11 @@ Private Sub RemoveOldRevs(tmpList As Variant)
         End If
         If i = UBound(tmpList, 1) - 1 Then Exit For
     Next i
-
 End Sub
 
 
 Private Function IsFirstItemLatestRev(first, second)
 Dim revTypeA, revTypeB As Integer
-
     revTypeA = revisionPrecendence(first)
     revTypeB = revisionPrecendence(second)
 
@@ -221,12 +213,10 @@ Dim revTypeA, revTypeB As Integer
     
         End Select
     End If
-    
 End Function
 
 
 Private Function getNumericPart(NumAlphaStr As Variant)
-
     Dim i As Integer
     Dim tmp As String
     
@@ -237,9 +227,7 @@ Private Function getNumericPart(NumAlphaStr As Variant)
             Exit For
         End If
     Next i
-    
     getNumericPart = Val(tmp)
-
 End Function
 
 
@@ -247,7 +235,6 @@ Private Function getAlphaPart(NumAlphaStr As Variant)
     'Purpose - Gets Alpha Character Portion
     Dim i As Integer
     Dim tmp As String
-    
     For i = 1 To Len(NumAlphaStr)
         If Not (IsNumeric(Mid(NumAlphaStr, i, 1))) = True Then
             tmp = tmp & Mid(NumAlphaStr, i, 1)
@@ -255,7 +242,6 @@ Private Function getAlphaPart(NumAlphaStr As Variant)
     Next i
     
     getAlphaPart = tmp
-
 End Function
 
 
@@ -277,7 +263,6 @@ End Function
 
 
 Private Function revisionPrecendence(tmpRev As Variant)
-
     'Purpose - Determine the Hierarchy of a Revions defined from Highest to Lowest as follows
     '1      FR1 - Assume FR is the highest precedence since it indicates a "Field Revision"
     '2      5C - Starts with Number followed by Alpha
@@ -285,7 +270,7 @@ Private Function revisionPrecendence(tmpRev As Variant)
     '4      1.10.21 or 1/10/21 Dates are assumed to be relatively low precedence since this is not in the form of a proper revision number
     '5      "-" dash only
     '6      ""  Empty
-    
+
     'section 1
     If InStr(1, UCase(tmpRev), "FR", vbTextCompare) > 0 Then
         revisionPrecendence = 1
@@ -333,7 +318,6 @@ Private Function revisionPrecendence(tmpRev As Variant)
     'section 6
     If tmpRev = "" Then revisionPrecendence = 6
     If tmpRev = " " Then revisionPrecendence = 6
-
 End Function
 
 
@@ -389,7 +373,6 @@ Private Sub OutputAryToSheet(ByVal shtName As String, _
                              ByVal ColmLoc As String, _
                              ByVal RowTopLoc As String, _
                              ByRef my_ary As Variant)
-    
     'Prints a two dimensional array to a worksheet
     'Usage-> Call OutputAryToSheet("sht1", "D", "2", dwg_list)
     
