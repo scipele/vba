@@ -93,29 +93,29 @@ Public Sub OutputAryToSheet(ByVal sht_name As String, _
 End Sub
 
 
-Sub setcolm_format(ByVal sht_name, _
+Sub set_col_format(ByVal sht_name, _
                    ByVal col_start_no As Integer, _
                    ByVal col_end_no As Integer, _
                    ByVal row_no_top As Integer, _
                    ByVal ary_btm_row As Integer, _
                    ByVal colm_format As String)
     
+    'dim variables before looping
     Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets(sht_name)
     Dim my_rng As Range
-    Dim i As Integer
-    Dim cur_col_str As String    ' T = Text, N = Number, D = Date Time, d - Date Only
+    Dim cur_col_str As String       'T = Text, N = Number, D = Date Time, d - Date Only
     Dim cur_col_code As String
     Dim cur_col_ltr As String
-    
-    ' Set the worksheet where your data is located
-    Set ws = ThisWorkbook.Sheets(sht_name)
+    Dim i As Integer
+    Dim index As Long
+    index = 1                       'index used for each char in the 'colm_format' string
     
     For i = col_start_no To col_end_no
-        cur_col_str = Mid(colm_format, i, 1)
-        ' set Format codes as follows T = @, N = "0", "D" = "mm/dd/yyyy hh:mm:ss", "d" = "mm/dd/yyyy"
+        cur_col_str = Mid(colm_format, index, 1)
+        index = index + 1
         cur_col_code = Switch(cur_col_str = "T", "@", cur_col_str = "N", "0", cur_col_str = "D", "mm/dd/yyyy hh:mm:ss", cur_col_str = "d", "mm/dd/yyyy")
         cur_col_ltr = Split(Cells(1, i).Address, "$")(1)
-        
         Set my_rng = ws.Range(cur_col_ltr & row_no_top & ":" & cur_col_ltr & ary_btm_row)
         my_rng.NumberFormat = cur_col_code
     Next i
