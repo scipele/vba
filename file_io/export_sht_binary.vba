@@ -1,10 +1,8 @@
-'This File Writes Data to a Structure from an excel sheet, and then writes the structure data to Binary Format that can be read by any programming language in the
-'same order as it it written using a single byte number before every string to indicate length (<255 characters in this program, otherwise would need to change
-'cbyte to  int)
-
-' Written by T. Sciple
-' v03, 6/30/2024
-
+' This File Writes Data to a Structure from an excel sheet, and then writes the structure data to Binary Format that can be read by any programming language in the
+' same order as it it written using a single byte number before every string to indicate length (<255 characters in this program, otherwise would need to change
+' cbyte to  int)
+'
+'  Written by T. Sciple  6/30/2024
 
 Option Explicit
 
@@ -80,6 +78,7 @@ Sub ExportData()
     
 End Sub
 
+
 Sub FillStructureFromSheet(ByVal shtName As String, _
                             ByVal headerRow As Long, _
                             ByVal noAreas As Integer, _
@@ -101,7 +100,6 @@ Sub FillStructureFromSheet(ByVal shtName As String, _
     For i = headerRow + 1 To lastTotalsRow
         ReDim ed(i).area(1 To noAreas)
     Next i
-
 
     For i = (headerRow + 1) To lastTotalsRow
         ' Read values from the spreadsheet into the structure max 255 characters for strings
@@ -133,9 +131,8 @@ Sub FillStructureFromSheet(ByVal shtName As String, _
             ed(i).area(j) = ForceZeroIfNonNumeric(ws.Cells(i, fldDict("Type") + j).value)    'assumes that area if 1 after type
         Next j
     Next i
-    
-    Call WriteStructureToBinaryFile(ed(), filePath, noColumns)
 
+    Call WriteStructureToBinaryFile(ed(), filePath, noColumns)
 End Sub
 
 
@@ -160,7 +157,6 @@ End Function
 Sub WriteStructureToBinaryFile(ByRef ed() As estimData, _
                                 ByVal filePath As String, _
                                 ByVal noColumns As Long)
-
     Dim fileNum As Integer
     Dim i As Long, j As Long
     fileNum = FreeFile
