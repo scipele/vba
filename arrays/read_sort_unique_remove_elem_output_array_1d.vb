@@ -105,7 +105,6 @@ Private Sub MakeAryUnique(ByRef myAry As Variant)
     For Each elem In myAry
         If Not dict.exists(elem) Then
             dict.Add elem, Nothing  'Nothing refers to the fact that we are not storing any item but only the key
-            Debug.Print elem
         End If
     Next elem
     
