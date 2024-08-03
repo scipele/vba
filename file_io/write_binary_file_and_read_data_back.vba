@@ -1,5 +1,4 @@
 Option Explicit
-
 ' filenme:      write_binary_file_and_read_data_back.xlsm
 '
 ' Purpose:      Example of how to write data to a binary file from excel
@@ -9,10 +8,9 @@ Option Explicit
 '
 ' by T.Sciple, scipele@yahoo.com 8/3/2024
 '
-' Table 1 in the example is defined as the following excluding the header row since i did not want
-' to write the header data to the binary file
-'
-'+-----+---------+---------+-----------+----------------------------------------------------------+
+' Table 1 in the example is defined as the following excluding the header row to exclude 
+' writing the header data to the binary file
+''+-----+---------+---------+-----------+----------------------------------------------------------+
 '| row | ex_integ| ex_long | ex_double | ex_text                                                  |
 '+-----+---------+---------+-----------+----------------------------------------------------------+
 '|  1  |   354   | 354545  | 3.1415515 | one                                                      |
@@ -34,17 +32,17 @@ End Type
 
 'Declare a dynamic array of the User Defined Type
 Sub main()
-    'Read Table Data
+    'Dim d() as a user defined type and read table data
     Dim d() As myType
     Call ReadTableData(d())
     
     'Write the Array of User Defined Type to a Binary File
     Call WriteFromUserDefinedTypeToBinaryFile(d())
     
-    'Now erase the array
+    'Now erase the array since the contents were written to the binary file
     Erase d
     
-    'Now read the data back from the Binary File to the User Defined Type
+    'now read the data back from the binary file to the user defined type
     Call ReadFromBinaryFileBackIntoUserDefinedType(d())
     
     'Place the data read back on the sheet
@@ -53,23 +51,22 @@ End Sub
 
 
 Sub ReadTableData(ByRef d() As myType)
-    
-    'Set the worksheet and table (change "Sheet1" and "Table1" to your sheet and table names)
+    'set the worksheet and table (change "sheet1" and "table1" to your sheet and table names)
     Dim ws As Worksheet
     Dim tbl As ListObject
     Set ws = ThisWorkbook.Worksheets("Sheet1")
     Set tbl = ws.ListObjects("Table1")
     
-    'Create a dictionary to map table headers to UDT fields
+    'create a dictionary to map table headers to udt fields
     Dim fieldMap As Scripting.Dictionary
     Set fieldMap = New Scripting.Dictionary
     fieldMap.CompareMode = TextCompare 'Ignore case
     
-    'Get the header row
+    'get the header row
     Dim headerRow As Range
     Set headerRow = tbl.HeaderRowRange
     
-    ' Populate the field map
+    'populate the field map
     Dim colIndex As Long
     For colIndex = 1 To headerRow.Columns.Count
         Select Case headerRow.Cells(1, colIndex).Value
@@ -86,10 +83,10 @@ Sub ReadTableData(ByRef d() As myType)
         End Select
     Next colIndex
     
-    'Resize the array to hold the table data
+    'resize the array to hold the table data
     ReDim d(1 To tbl.ListRows.Count)
     
-    'Loop through the table rows and populate the UDT array
+    'loop through the table rows and populate the udt array
     Dim tblRow As ListRow
     Dim i As Integer
     i = 1
@@ -105,12 +102,10 @@ Sub ReadTableData(ByRef d() As myType)
     Next tblRow
     
 End Sub
-  
 
 
 Sub WriteFromUserDefinedTypeToBinaryFile(ByRef d() As myType)
-
-    'Set the file path for the binary file
+    'set the file path for the binary file
     Dim filePath As String
     filePath = "C:\t\test.bin"
     
@@ -118,33 +113,29 @@ Sub WriteFromUserDefinedTypeToBinaryFile(ByRef d() As myType)
     If Dir(filePath) <> "" Then
         Kill filePath
         MsgBox "Deleted Previous File: " & filePath, vbInformation
-
     End If
     
     Dim folderPath As String
-    
     folderPath = "c:\t"
     'Check if directory exists
     If Dir(folderPath, vbDirectory) = "" Then
-        'Directory does not exist, so create it
+	'Directory does not exist, so create it
     MkDir folderPath
     End If
     
-
-    'Write the Number of Rows that are written
+    'write the number of rows that are written
     Dim row_cnt As Integer
     row_cnt = UBound(d) - LBound(d) + 1
     
-    'Open binary file for writing
+    'open binary file for writing
     Dim fileNum As Integer
     fileNum = FreeFile
-
     Open filePath For Binary As #fileNum
     
-    'Write the number of rows written
+    'write the number of rows written
     Put #fileNum, , row_cnt
 
-    'Write the User Defined Type Variables individually for each Row
+    'write the user defined type variables individually for each row
     Dim i As Long
     For i = LBound(d) To UBound(d)
         Put #fileNum, , d(i).row
@@ -152,17 +143,15 @@ Sub WriteFromUserDefinedTypeToBinaryFile(ByRef d() As myType)
         Put #fileNum, , d(i).ex_long
         Put #fileNum, , d(i).ex_double
         
-        'Write the lngth of the string first, then read the entire string
+        'write the length of the string first, then read the entire string
         Put #fileNum, , CByte(Len(d(i).ex_text))
         Put #fileNum, , d(i).ex_text
-
     Next i
     
     'Close the file
     Close #fileNum
     
     MsgBox ("Binary File written and closed")
-    
 End Sub
 
 
@@ -180,21 +169,19 @@ Sub ReadFromBinaryFileBackIntoUserDefinedType(ByRef d() As myType)
     fileNum = FreeFile
     Open filePath For Binary As fileNum
     
-    'Getthe number of rows written
+    'Get the number of rows written
     Dim row_cnt As Integer
     
     Get #fileNum, , row_cnt
     
-    ReDim d(1 To row_cnt)
-    
     'Write the User Defined Type Variables individually for each Row
+    ReDim d(1 To row_cnt)
     For i = LBound(d) To UBound(d)
         Get #fileNum, , d(i).row
         Get #fileNum, , d(i).ex_integ
         Get #fileNum, , d(i).ex_long
         Get #fileNum, , d(i).ex_double
         Call getBinaryStrLenAndReturnStringToUdt(fileNum, d(i).ex_text)
-
     Next i
     
     'Close the file
