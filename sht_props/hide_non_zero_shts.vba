@@ -21,7 +21,7 @@ Sub hide_nonzero_sheets()
     Dim sht_names As Variant
     sht_names = Array("Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", "PipFld", "Insul", "Trace", "FirePrf", "SPaint", "FPaint", "EI", "Bldg", "Demo", "ignore", "SpSub", "Supt", "ignore", "ignore", "ignore", "Indir")
     
-    'Create Dictionary Object to store the Sheet Name and desired visable state
+    'Create Dictionary Object to store the Sheet Name and desired visible state
     Dim dict As Object
     Set dict = CreateObject("Scripting.Dictionary")
     
@@ -37,7 +37,7 @@ Sub hide_nonzero_sheets()
         End If
     Next i
     
-    'Manually add other sheets that we want to be visable
+    'Manually add other sheets that we want to be visible
     dict.Add "Sum1", True
     dict.Add "Sum2", True
     dict.Add "Note", True
@@ -49,10 +49,10 @@ Sub hide_nonzero_sheets()
     dict.Add "B&G", False
     dict.Add "Torq", False
     
-    ' Change Visable state to match the dictionary value from the ws.name
+    ' Change Visible state to match the dictionary value from the ws.name
     Dim ws As Variant
     For Each ws In ThisWorkbook.Worksheets
-        ' check the desired visable state from the dictionary object
+        ' check the desired visible state from the dictionary object
         If dict(ws.Name) Then
             ws.Visible = xlSheetVisible
         Else
@@ -65,7 +65,7 @@ End Sub
 Sub unhide_sheets_and_clear_filters()
     ' Loop thru each sheet
     For Each ws In ThisWorkbook.Worksheets
-        ws.Visible = xlSheetVisible     'set the visability
+        ws.Visible = xlSheetVisible     'set the visibility
         
         ' Clear filters but keep auto filters
         If ws.AutoFilterMode Then
