@@ -9,7 +9,8 @@
 '      Also delete columns to the right
 '   5. Delete Columns to the right of I on Prod Tab
 '   6. Delete all hidden sheets for (Rate, Sched, Metrics, B&G, Torq)
-'
+'   7. Delete zero value sheets
+
 ' Dependencies:  None
 '
 ' By:  T.Sciple, 8/8/2024
@@ -32,6 +33,8 @@ Sub strip_formulas_for_client()
     Call delete_colms_other
     'Step 6
     Call delete_listed_sheets
+    'Step 7
+    Call delete_zero_value_sheets
 End Sub
 
 
@@ -115,6 +118,10 @@ Sub copy_and_paste_values_in_order()
         
         ' Clear Clipboard (Optional)
         Application.CutCopyMode = False
+        
+        ws.Activate
+        ws.[a1].Select
+        
     Next sht
     
     'cleanup delete ws object
@@ -164,27 +171,6 @@ Sub delete_un_xd_and_zero_rows()
 End Sub
 
 
-'Step 3
-Sub delete_listed_sheets()
-    Dim shts As Variant
-    shts = Array("Rate", "Sched", "Metrics", "B&G", "Torq")
-    
-    Application.DisplayAlerts = False
-    'Dim variables used in the loop
-    Dim ws As Worksheet
-    Dim sht As Variant
-    For Each sht In shts
-        ' Set the worksheet object
-        Set ws = ThisWorkbook.Sheets(sht)
-        ws.Delete
-    Next sht
-    
-    Application.DisplayAlerts = True
-    'cleanup delete ws object
-    Set ws = Nothing
-End Sub
-
-
 'Step 5
 Sub delete_colms_other()
     
@@ -216,6 +202,69 @@ Sub delete_colms_other()
 End Sub
 
 
+'Step 6
+Sub delete_listed_sheets()
+    Dim shts As Variant
+    shts = Array("Rate", "Sched", "Metrics", "B&G", "Torq")
+    
+    Application.DisplayAlerts = False
+    'Dim variables used in the loop
+    Dim ws As Worksheet
+    Dim sht As Variant
+    For Each sht In shts
+        
+        If SheetExists(sht) Then
+            Set ws = ThisWorkbook.Sheets(sht)
+            ws.Delete
+        End If
+    Next sht
+    
+    Application.DisplayAlerts = True
+    'cleanup delete ws object
+    Set ws = Nothing
+End Sub
+
+
+'step 7
+Sub delete_zero_value_sheets()
+
+    Dim sums As Variant
+    sums = ThisWorkbook.Sheets("Sum2").Range("I3:i24")
+    
+    Dim sht_names As Variant
+    sht_names = Array("Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", "PipFld", "Insul", "Trace", "FirePrf", "SPaint", "FPaint", "EI", "Bldg", "Demo", "ignore", "SpSub", "Supt", "ignore", "ignore", "ignore", "Indir")
+    
+    'Create Dictionary Object to store the Sheet Name and whether it will be deleted or not
+    Dim dict As Object
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    Dim i As Integer
+    For i = LBound(sht_names) To UBound(sht_names)
+        If Not sht_names(i) = "ignore" Then
+            If Abs(sums(i + 1, 1)) < 0.01 Then  'Checks to make sure that the summary value is not zero
+                dict.Add sht_names(i), True
+            Else
+                dict.Add sht_names(i), False
+            End If
+            Debug.Print "key = ", sht_names(i), "Item = ", dict(sht_names(i))
+        End If
+    Next i
+    
+    Application.DisplayAlerts = False
+
+    ' Delete the Sheets with False in dictionary object
+    Dim ws As Variant
+    For Each ws In ThisWorkbook.Worksheets
+        ' check the desired visible state from the dictionary object
+        If dict(ws.Name) Then
+            ws.Delete
+        End If
+    Next ws
+    Application.DisplayAlerts = True
+    
+End Sub
+
+
 Function FindColumnByLabel(ByVal label As String, _
                             ByVal searchRow As Long, _
                             ByVal shtName As String) _
@@ -229,11 +278,21 @@ Function FindColumnByLabel(ByVal label As String, _
     ' Initialize the function result
     FindColumnByLabel = -1
     
-    ' Search for the label in the specified row
     Set foundCell = ws.Rows(searchRow).Find(What:=label, LookIn:=xlValues, LookAt:=xlWhole)
+    'try look in formulas if not found
+    If foundCell Is Nothing Then
+        Set foundCell = ws.Rows(searchRow).Find(What:=label, LookIn:=xlFormulas, LookAt:=xlWhole)
+    End If
 
     ' Check if the cell was found and return the column number
     If Not foundCell Is Nothing Then
         FindColumnByLabel = foundCell.Column
     End If
+End Function
+
+
+Function SheetExists(ByVal SheetName As String) As Boolean
+    On Error Resume Next
+    SheetExists = Not ThisWorkbook.Sheets(SheetName) Is Nothing
+    On Error GoTo 0
 End Function
