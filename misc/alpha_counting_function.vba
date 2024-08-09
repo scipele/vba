@@ -1,33 +1,28 @@
 ' Subs:     alpha_counting_function
 '
-'
-' Purpose:  This code looks at the values in a particular estimate sheet and sets whether the visibility of the sheets depending on the values
-'           found within the workbook
-'
+' Purpose:  This code counts by alpha characters same as columns in excel
+'           1-26 returns a-z
+'           27-80 returns AA-CB
 '
 ' Dependencies:  None
 '
 ' By:  T. Sciple, 8/8/2024
 '
 sub test_example
+    dim i as Long
+    for i = 1 to 26
+        debug.print i, alpha_counting_function(i)
+    next i
 
-dim i as Long'
-'
-for i = 1 to 26
-    debug.print i, alpha_ounting_function(i)
-next i
-
-'Now start with two letters
-debug.print alpha_ounting_function(i)
-for i = 27 to 100
-    debug.print i, alpha_ounting_function(i)
-next i
-
-
+    'Now start with two letters
+    debug.print alpha_ounting_function(i)
+    for i = 27 to 100
+        debug.print i, alpha_counting_function(i)
+    next i
 end sub
 
 
-Function alpha_ounting_function(ByVal n As Long) As String
+Function alpha_counting_function(ByVal n As Long) As String
     Dim result As String
     Dim ascA As Integer
     
@@ -45,5 +40,5 @@ Function alpha_ounting_function(ByVal n As Long) As String
         result = "Error - Invalid column number"
     End If
     
-    colm_no_to_letter = result
+    alpha_counting_function = result
 End Function
