@@ -10,12 +10,19 @@
 '   5. Delete Columns to the right of I on Prod Tab
 '   6. Delete all hidden sheets for (Rate, Sched, Metrics, B&G, Torq)
 '   7. Delete zero value sheets
+'   8. Complete - Cleanup
 
 ' Dependencies:  None
 '
-' By:  T.Sciple, 8/8/2024
+' By:  T.Sciple, 8/9/2024
 '
 Sub strip_formulas_for_client()
+
+    Dim StartTime As Double
+    Dim SecondsElapsed As Double
+    'Remember time when macro starts
+    StartTime = Timer
+    
     'Step 1
     Dim response As String
     response = make_sure_before_proceeding()
@@ -23,6 +30,7 @@ Sub strip_formulas_for_client()
         MsgBox ("Canceled by User")
         Exit Sub
     End If
+    Call speedup_restore(False)
     'Step 2
     Call unhide_sheets_and_clear_filters
     'Step 3
@@ -35,6 +43,14 @@ Sub strip_formulas_for_client()
     Call delete_listed_sheets
     'Step 7
     Call delete_zero_value_sheets
+    'Step 8
+    Call complete
+    
+    'Determine how many seconds code took to run
+    SecondsElapsed = Round(Timer - StartTime, 2)
+    
+    MsgBox ("Completed in " & SecondsElapsed & "seconds")
+    
 End Sub
 
 
@@ -120,8 +136,7 @@ Sub copy_and_paste_values_in_order()
         Application.CutCopyMode = False
         
         ws.Activate
-        ws.[a1].Select
-        
+        ws.[a2].Select
     Next sht
     
     'cleanup delete ws object
@@ -173,28 +188,35 @@ End Sub
 
 'Step 5
 Sub delete_colms_other()
-    
+
+    'Delete other columns in different sheets
+    Dim shts As Variant
+    shts = Array("Prod", "Owner")
+
+    Dim key_field_names As Variant
+    key_field_names = Array("CALC RATE $/HR", "TOTAL  CLIENT COST")
+
     'Dim variables used in the loop
     Dim ws As Worksheet
     Dim usedRange As Range
     
-    Dim sht As String
-    sht = "Prod"
+    Dim i As Integer
+    Dim j As Integer
+    For i = LBound(shts) To UBound(shts)
+        ' Set the worksheet object
+        Set ws = ThisWorkbook.Sheets(shts(i))
+            
+        ' Define the used range
+        Set usedRange = ws.usedRange
     
-    ' Set the worksheet object
-    Set ws = ThisWorkbook.Sheets(sht)
+        'Locate the Next to Last Column
+        Dim key_colm As Integer
+        key_colm = FindColumnByLabel(key_field_names(i), 1, shts(i))
         
-    ' Define the used range
-    Set usedRange = ws.usedRange
-
-    'Locate the Next to Last Column
-    Dim key_colm As Integer
-    key_colm = FindColumnByLabel("CALC RATE $/HR", 1, sht)
-    
-    'delete columns past total to end of used range
-    Dim i As Long
-    For i = usedRange.Columns.Count To (key_colm + 2) Step -1
-        ws.Columns(i).Delete
+        'delete columns past total to end of used range
+        For j = usedRange.Columns.Count To (key_colm + 2) Step -1
+            ws.Columns(j).Delete
+        Next j
     Next i
     
     'cleanup delete ws object
@@ -265,6 +287,26 @@ Sub delete_zero_value_sheets()
 End Sub
 
 
+'step 8
+Sub complete()
+
+    'Dim variables used in the loop
+    Dim ws As Worksheet
+    Dim usedRange As Range
+    
+    Dim sht As String
+    sht = "Sum1"
+    
+    ' Set the worksheet object
+    Set ws = ThisWorkbook.Sheets(sht)
+    ws.Activate
+    ws.Range("A2").Activate
+    
+    Call speedup_restore(True)
+    
+End Sub
+
+
 Function FindColumnByLabel(ByVal label As String, _
                             ByVal searchRow As Long, _
                             ByVal shtName As String) _
@@ -296,3 +338,13 @@ Function SheetExists(ByVal SheetName As String) As Boolean
     SheetExists = Not ThisWorkbook.Sheets(SheetName) Is Nothing
     On Error GoTo 0
 End Function
+
+
+Sub speedup_restore(ByVal at_end As Boolean)
+    'Use the boolean 'at_end' to restore settings if true or make them false at the start
+    Application.ScreenUpdating = at_end
+    Application.DisplayStatusBar = at_end
+    Application.EnableEvents = at_end
+    ActiveSheet.DisplayPageBreaks = at_end
+    Application.Calculation = IIf(at_end, xlAutomatic, xlManual)
+End Sub
