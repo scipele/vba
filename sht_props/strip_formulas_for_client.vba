@@ -95,7 +95,7 @@ End Sub
 'Step 3
 Sub copy_and_paste_values_in_order()
     Dim sht_order As Variant
-    sht_order = Array("Sum2", "Sum1", "SPaint", "FPaint", "Supt", "Prod", "Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", _
+    sht_order = Array("Sum2", "SPaint", "FPaint", "Supt", "Prod", "Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", _
                       "PipFld", "Insul", "Trace", "FirePrf", "EI", "Bldg", "Demo", "SpSub", "Indir", "Conting", "Owner", "KeyQty")
     
     'Dim variables used in the loop
