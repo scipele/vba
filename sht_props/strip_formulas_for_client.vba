@@ -16,7 +16,7 @@
 '
 ' By:  T.Sciple, 8/9/2024
 '
-Sub strip_formulas_for_client()
+public Sub strip_formulas_for_client()
 
     Dim StartTime As Double
     Dim SecondsElapsed As Double
@@ -55,7 +55,7 @@ End Sub
 
 
 'Step 1.1
-Function make_sure_before_proceeding()
+private Function make_sure_before_proceeding()
     ' Ask three different times before proceeding
     Dim msgs As Variant
     Dim tmpResponse As String
@@ -78,7 +78,7 @@ End Function
 
 
 'Step 1.2
-Function get_btn_response(ByVal msg As String)
+private Function get_btn_response(ByVal msg As String)
     Dim Style As Variant
     Dim Title As String
     Dim response As Variant
@@ -95,7 +95,7 @@ End Function
 
 
 'Step 2
-Sub unhide_sheets_and_clear_filters()
+private Sub unhide_sheets_and_clear_filters()
     ' Loop thru each sheet
     For Each ws In ThisWorkbook.Worksheets
         ws.Visible = xlSheetVisible     'set the visibility
@@ -109,7 +109,7 @@ End Sub
 
 
 'Step 3
-Sub copy_and_paste_values_in_order()
+private Sub copy_and_paste_values_in_order()
     Dim sht_order As Variant
     sht_order = Array("Sum2", "SPaint", "FPaint", "Supt", "Prod", "Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", _
                       "PipFld", "Insul", "Trace", "FirePrf", "EI", "Bldg", "Demo", "SpSub", "Indir", "Conting", "Owner", "KeyQty")
@@ -120,6 +120,7 @@ Sub copy_and_paste_values_in_order()
     Dim sht As Variant
     
     For Each sht In sht_order
+        on Error Resume Next
         ' Set the worksheet object
         Set ws = ThisWorkbook.Sheets(sht)
            
@@ -135,8 +136,11 @@ Sub copy_and_paste_values_in_order()
         ' Clear Clipboard (Optional)
         Application.CutCopyMode = False
         
+        'Activate current Sheet, Select Cell A2, Scoll Up -> True
         ws.Activate
         ws.[a2].Select
+        Application.Goto Worksheets(Sht).Range("A2"), True
+
     Next sht
     
     'cleanup delete ws object
@@ -145,7 +149,7 @@ End Sub
 
 
 'Step 4
-Sub delete_un_xd_and_zero_rows()
+private Sub delete_un_xd_and_zero_rows()
     Dim sht_order As Variant
     sht_order = Array("Pile", "Conc", "PipUG", "Steel", "Equip", "PipShp", "PipFld", "Insul", "Trace", "FirePrf", "SPaint", "FPaint", "EI", "Bldg", "Demo", "SpSub", "Supt", "Indir")
     
@@ -187,7 +191,7 @@ End Sub
 
 
 'Step 5
-Sub delete_colms_other()
+private Sub delete_colms_other()
 
     'Delete other columns in different sheets
     Dim shts As Variant
@@ -225,7 +229,7 @@ End Sub
 
 
 'Step 6
-Sub delete_listed_sheets()
+private Sub delete_listed_sheets()
     Dim shts As Variant
     shts = Array("Rate", "Sched", "Metrics", "B&G", "Torq")
     
@@ -248,7 +252,7 @@ End Sub
 
 
 'step 7
-Sub delete_zero_value_sheets()
+private Sub delete_zero_value_sheets()
 
     Dim sums As Variant
     sums = ThisWorkbook.Sheets("Sum2").Range("I3:i24")
@@ -288,7 +292,7 @@ End Sub
 
 
 'step 8
-Sub complete()
+private Sub complete()
 
     'Dim variables used in the loop
     Dim ws As Worksheet
@@ -307,7 +311,7 @@ Sub complete()
 End Sub
 
 
-Function FindColumnByLabel(ByVal label As String, _
+private Function FindColumnByLabel(ByVal label As String, _
                             ByVal searchRow As Long, _
                             ByVal shtName As String) _
                             As Long
@@ -333,14 +337,14 @@ Function FindColumnByLabel(ByVal label As String, _
 End Function
 
 
-Function SheetExists(ByVal SheetName As String) As Boolean
+private Function SheetExists(ByVal SheetName As String) As Boolean
     On Error Resume Next
     SheetExists = Not ThisWorkbook.Sheets(SheetName) Is Nothing
     On Error GoTo 0
 End Function
 
 
-Sub speedup_restore(ByVal at_end As Boolean)
+private Sub speedup_restore(ByVal at_end As Boolean)
     'Use the boolean 'at_end' to restore settings if true or make them false at the start
     Application.ScreenUpdating = at_end
     Application.DisplayStatusBar = at_end
