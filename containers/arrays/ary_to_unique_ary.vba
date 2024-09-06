@@ -62,4 +62,3 @@ Sub clear()
     Set rng = ThisWorkbook.Sheets("Sheet1").Range("e4:E10")
     rng.ClearContents
 End Sub
-
