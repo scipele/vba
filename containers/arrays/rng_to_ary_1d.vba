@@ -3,6 +3,7 @@
 ' Purpose:      converts a range in a worksheet to a one dimensional array
 '
 ' Usage:        my_ary = rng_to_ary_1d("Sheet1", "A2:A5", 0)
+' alt Usage:    my_ary = rng_to_ary_1d("Sheet1", "input_rng", 0) < --Also works with a named range
 ' parameters:
 '               sht_name As String
 '               rng_str As String
@@ -15,30 +16,31 @@
 Sub clear()
     Dim rng As Range
     Set rng = ThisWorkbook.Sheets("Sheet1").Range("A12:E15")
-    rng.ClearContents    
+    rng.ClearContents
 End Sub
 
 
-Sub test()
+ Sub test()
     'test with top to bottom range
+    dim sht_name as String
     Dim my_ary As Variant
-    my_ary = rng_to_ary_1d("Sheet1", "A2:A5", 0) '<--  Note that the zero produces a zero based array
+    my_ary = rng_to_ary_1d(sht_name, "input_rng", 0) '<--  Note that the zero produces a zero based array
     
     Dim elem As Variant
     Dim i As Long
     i = 12
     For Each elem In my_ary
-        ThisWorkbook.Sheets("Sheet1").Range("A" & i).Value = elem
+        ThisWorkbook.Sheets(sht_name).Range("A" & i).Value = elem
         i = i + 1
     Next elem
 
     'test with left to right range
     Dim my_ary2 As Variant
-    my_ary2 = rng_to_ary_1d("Sheet1", "e2:h2", 1) '<--  Note that the 1 produces a 1 based array
+    my_ary2 = rng_to_ary_1d(sht_name, "e2:h2", 1) '<--  Note that the 1 produces a 1 based array
     
     i = 12  'reset
     For Each elem In my_ary2
-        ThisWorkbook.Sheets("Sheet1").Range("E" & i).Value = elem
+        ThisWorkbook.Sheets(sht_name).Range("E" & i).Value = elem
         i = i + 1
     Next elem
 
