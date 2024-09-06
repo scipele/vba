@@ -2,7 +2,7 @@
 '
 ' Purpose:      converts a range in a worksheet to a one dimensional array
 '
-' Usage:        my_ary = rng_to_one_dim_array("Sheet1", "A2:A5", 0)
+' Usage:        my_ary = rng_to_ary_1d("Sheet1", "A2:A5", 0)
 ' parameters:
 '               sht_name As String
 '               rng_str As String
@@ -12,23 +12,34 @@
 '
 ' By:  T.Sciple, 09/06/2024
 
+Sub clear()
+    Dim rng As Range
+    Set rng = ThisWorkbook.Sheets("Sheet1").Range("A12:E15")
+    rng.ClearContents    
+End Sub
+
 
 Sub test()
     'test with top to bottom range
     Dim my_ary As Variant
-    my_ary = rng_to_one_dim_ary("Sheet1", "A2:A5", 0) '<--  Note that the zero produces a zero based array
+    my_ary = rng_to_ary_1d("Sheet1", "A2:A5", 0) '<--  Note that the zero produces a zero based array
     
     Dim elem As Variant
+    Dim i As Long
+    i = 12
     For Each elem In my_ary
-        Debug.Print elem
+        ThisWorkbook.Sheets("Sheet1").Range("A" & i).Value = elem
+        i = i + 1
     Next elem
 
     'test with left to right range
     Dim my_ary2 As Variant
-    my_ary2 = rng_to_one_dim_ary("Sheet1", "e2:h2", 1) '<--  Note that the 1 produces a 1 based array
+    my_ary2 = rng_to_ary_1d("Sheet1", "e2:h2", 1) '<--  Note that the 1 produces a 1 based array
     
+    i = 12  'reset
     For Each elem In my_ary2
-        Debug.Print elem
+        ThisWorkbook.Sheets("Sheet1").Range("E" & i).Value = elem
+        i = i + 1
     Next elem
 
     'cleanup
@@ -37,11 +48,10 @@ Sub test()
 End Sub
 
 
-Private Function rng_to_one_dim_ary( _
-                                    sht_name As String, _
-                                    rng_str As String, _
-                                    base_num As Integer) _
-                                    As Variant
+Private Function rng_to_ary_1d(sht_name As String, _
+                                rng_str As String, _
+                                base_num As Integer) _
+                                As Variant
 
     Dim rng As Range
     Set rng = ThisWorkbook.Sheets(sht_name).Range(rng_str)
@@ -52,6 +62,7 @@ Private Function rng_to_one_dim_ary( _
 
     'Read the range into the array
     Dim item As Variant
+    Dim i As Long
     i = base_num
     For Each item In rng
         tmp_ary(i) = item
@@ -59,5 +70,5 @@ Private Function rng_to_one_dim_ary( _
     Next
     
     'set the function return equal to the variant temporary array 'tmp_ary'
-    rng_to_one_dim_ary = tmp_ary
+    rng_to_ary_1d = tmp_ary
 End Function
