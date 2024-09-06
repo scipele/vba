@@ -11,6 +11,9 @@ Sub main()
     my_ary = ThisWorkbook.Sheets("Sheet1").Range("inp_rng")
     my_ary = ary_to_unique_ary(my_ary)
     Call output_1d_array_to_rng(my_ary)
+
+    'cleanup
+    erase my_ary
 End Sub
 
 
@@ -27,6 +30,9 @@ Function ary_to_unique_ary(ByRef my_ary As Variant) As Variant
     Next elem
     
     ary_to_unique_ary = dict.keys
+
+    'cleanup
+    set dict = nothing
 End Function
 
 
@@ -51,9 +57,12 @@ Sub output_1d_array_to_rng(ByRef ary As Variant)
     Dim count As Long
     count = UBound(ary, 1) - LBound(ary, 1)
     
-    Dim rng_target As Range
-    Set rng_target = ThisWorkbook.Sheets("Sheet1").Range("E" & start_row & ":e" & start_row + count)
-    rng_target = ary
+    Dim rng As Range
+    Set rng = ThisWorkbook.Sheets("Sheet1").Range("E" & start_row & ":e" & start_row + count)
+    rng = ary
+
+    'cleanup
+    set rng = nothing
 End Sub
 
 
@@ -61,4 +70,6 @@ Sub clear()
     Dim rng As Range
     Set rng = ThisWorkbook.Sheets("Sheet1").Range("e4:E10")
     rng.ClearContents
+    'cleanup
+    set rng = nothing
 End Sub
