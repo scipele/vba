@@ -5,10 +5,12 @@ Option Explicit
 ' Dependencies: None
 ' By:  T.Sciple, 09/06/2024
 
-Sub test()
+
+Sub main()
     Dim my_ary As Variant
-    my_ary = Array(1, 1, 2, 10, 11, 15, 3, 5, 10)   'Include duplicates in the original array that will be removed
+    my_ary = ThisWorkbook.Sheets("Sheet1").Range("inp_rng")
     my_ary = ary_to_unique_ary(my_ary)
+    Call output_1d_array_to_rng(my_ary)
 End Sub
 
 
@@ -26,3 +28,38 @@ Function ary_to_unique_ary(ByRef my_ary As Variant) As Variant
     
     ary_to_unique_ary = dict.keys
 End Function
+
+
+Function Convert1DTo2D(ByRef ary As Variant) As Variant
+    Dim i As Long
+    Dim newArr() As Variant
+    ReDim newArr(LBound(ary) To UBound(ary), 1 To 1)
+    
+    For i = LBound(ary) To UBound(ary)
+        newArr(i, 1) = ary(i)
+    Next i
+    Convert1DTo2D = newArr
+End Function
+
+
+Sub output_1d_array_to_rng(ByRef ary As Variant)
+    'convert the array to 2d so that the range property can be set
+    ary = Convert1DTo2D(ary)
+    
+    Dim start_row As Integer
+    start_row = 4
+    Dim count As Long
+    count = UBound(ary, 1) - LBound(ary, 1)
+    
+    Dim rng_target As Range
+    Set rng_target = ThisWorkbook.Sheets("Sheet1").Range("E" & start_row & ":e" & start_row + count)
+    rng_target = ary
+End Sub
+
+
+Sub clear()
+    Dim rng As Range
+    Set rng = ThisWorkbook.Sheets("Sheet1").Range("e4:E10")
+    rng.ClearContents
+End Sub
+
