@@ -3,7 +3,7 @@ Option Explicit
 '
 ' Purpose:      returns the excel column letter converted to a number
 '
-' Usage:
+' Usage:        col_no = colm_ltr_to_no("AB")
 '
 ' Dependencies: None
 ' By:  T.Sciple, 09/07/2024
