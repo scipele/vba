@@ -1,7 +1,8 @@
 Option Explicit
-' filename:     sort_ary_1d.vba
+' filename:     sort_ary_1d_bubble.vba
 '
-' Purpose:      sorts an array using basic bubble sort
+' Purpose:      sorts an array using bubble sort algorithmn which is O(n^2) Time Complexity
+'                so only good for small arrays
 '
 ' key Usage:    sort_ary_id(ary, "asc") '<- or desc
 '               other items are for reading and output
