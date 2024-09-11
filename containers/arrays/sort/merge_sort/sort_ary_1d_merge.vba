@@ -1,14 +1,14 @@
 Option Explicit
-' filename:     sort_ary_1d_bubble.vba
+' filename:     sort_ary_1d_merge.vba
 '
-' Purpose:      sorts an array using bubble sort algorithmn which is O(n^2) Time Complexity
-'                so only good for small arrays
+' Purpose:      sorts an array using merge sort algorithmn which is average time complexity of O(n log n)
 '
-' key Usage:    sort_ary_id(ary, "asc") '<- or desc
-'               other items are for reading and output
+' key Usage:    Call mergeSort(ary, left, n - 1)
+'               left = 0 to start
+'               n = number of items in array
 '
 ' Dependencies: None
-' By:  T.Sciple, 09/07/2024
+' By:  T.Sciple, 09/09/2024
 
 
 Sub main()
@@ -17,10 +17,16 @@ Sub main()
     ary = ThisWorkbook.Sheets("Sheet1").Range("inp_rng")
     
     '2. convert array to 1d
-    ary = rng_to_ary_1d("Sheet1", "B4:B12", 1)
+    ary = rng_to_ary_1d("Sheet1", "inp_rng", 0)
 
     '3. sort the array
-    Call sort_ary_id(ary, "asc")
+    Dim n As Long
+    n = UBound(ary) - LBound(ary) + 1
+    
+    Dim left As Long
+    left = 0
+    
+    Call mergeSort(ary, left, n - 1)
     
     '4. output to sheet if not erased
     If IsArrayErased(ary) Then
@@ -31,6 +37,83 @@ Sub main()
 
     'cleanup
     Erase ary
+End Sub
+
+
+Sub mergeSort(ByRef ary As Variant, _
+              ByVal left As Long, _
+              ByVal right As Long)
+
+    If (left >= right) Then
+        Exit Sub
+    End If
+    
+    Dim mid As Long
+    mid = left + (right - left) \ 2
+    Call mergeSort(ary, left, mid)
+    Call mergeSort(ary, mid + 1, right)
+    Call merge(ary, left, mid, right)
+End Sub
+
+' Merges two subvectors of vec[]
+' First subarray is vec[left..mid]
+' Second subarray is vec[mid+1..right]
+Sub merge(ByRef ary As Variant, left As Long, mid As Long, right As Long)
+
+    Dim n1 As Long
+    n1 = mid - left + 1
+    Dim n2 As Long
+    n2 = right - mid
+
+    ' Create temp vectors
+    Dim L() As Variant
+    ReDim L(0 To n1 - 1)
+    Dim R() As Variant
+    ReDim R(0 To n2 - 1)
+    
+    ' Copy data to temp vectors L[] and R[]
+    Dim i As Long
+    For i = 0 To (n1 - 1)
+        L(i) = ary(left + i)
+    Next i
+    
+    Dim j As Long
+    For j = 0 To (n2 - 1)
+        R(j) = ary(mid + 1 + j)
+    Next j
+
+    i = 0: j = 0
+    Dim k As Long
+    k = left
+    
+    ' Merge the temp vectors back into vec[left..right]
+        
+    While (i < n1 And j < n2)
+        ' Following is where comparison and swap is done
+        If L(i) <= R(j) Then
+            ary(k) = L(i)
+            i = i + 1
+        Else
+            ary(k) = R(j)
+            j = j + 1
+        End If
+        k = k + 1
+    Wend
+
+    ' Copy the remaining elements of L[], if there are any
+    While (i < n1)
+        ary(k) = L(i)
+        i = i + 1
+        k = k + 1
+    Wend
+
+    ' Copy the remaining elements of R[], if there are any
+    While (j < n2)
+        ary(k) = R(j)
+        j = j + 1
+        k = k + 1
+    Wend
+
 End Sub
 
 
@@ -126,7 +209,7 @@ Sub output_1d_array_to_rng(ByRef ary As Variant)
     count = UBound(ary, 1) - LBound(ary, 1)
     
     Dim rng As Range
-    Set rng = ThisWorkbook.Sheets("Sheet1").Range("E" & start_row & ":e" & start_row + count)
+    Set rng = ThisWorkbook.Sheets("Sheet1").Range("c" & start_row & ":c" & start_row + count)
     rng = ary
 
     'cleanup
@@ -148,7 +231,7 @@ End Function
 
 Sub clear()
     Dim rng As Range
-    Set rng = ThisWorkbook.Sheets("Sheet1").Range("e4:E12")
+    Set rng = ThisWorkbook.Sheets("Sheet1").Range("c4:c508")
     rng.ClearContents
     'cleanup
     Set rng = Nothing
