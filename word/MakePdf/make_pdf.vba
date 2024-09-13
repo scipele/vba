@@ -2,15 +2,16 @@ Option Explicit
 
 Sub MakePdf()
 ' Purpose: Save a PDF Document From Active Word Document in same folder
-' Create shortcut key as follows:
-  '1. Rightclick on blank portion of ribbon area
-  '2. Customize the ribbon
-  '3. Choose commands from: select MakePdf
-  '4. Click on Keyboard shortcuts: [Customize] command button
-  '5. Place cursor in the 'Press new shortcut key' textbox
-  '6. Press the 'Alt-P' or other key combination
-  '7. Click the [Assign] Command Button
-  '8. Close
+'	Insert the following macro into a module in the "Normal" Document Template
+'	Create shortcut key as follows:
+'		1. Rightclick on blank portion of ribbon area
+'		2. Customize the ribbon
+'		3. Choose commands from: select MakePdf
+'		4. Click on Keyboard shortcuts: [Customize] command button
+'		5. Place cursor in the Press new shortcut key textbox
+'		6. Press the Alt-P or other key combination
+'		7. Click the [Assign] Command Button
+'		8. Close
 ' By: T.Sciple, 9/13/2024
 
   Dim UniqueName As Boolean
