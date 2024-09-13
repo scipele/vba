@@ -8,10 +8,12 @@ Sub MakePdf()
 '		2. Customize the ribbon
 '		3. Choose commands from: select MakePdf
 '		4. Click on Keyboard shortcuts: [Customize] command button
-'		5. Place cursor in the Press new shortcut key textbox
-'		6. Press the Alt-P or other key combination
-'		7. Click the [Assign] Command Button
-'		8. Close
+'   5. Scroll down to Macros - in the Categories combo box
+'   6. Slect 'MakePdf' Macro in the Macros: combo box
+'		7. Place cursor in the Press new shortcut key textbox
+'		8. Press the 'Alt-P' keys together or some other key combination
+'		9. Click the [Assign] Command Button
+'		10. Close
 ' By: T.Sciple, 9/13/2024
 
   Dim UniqueName As Boolean
