@@ -1,3 +1,14 @@
+Option Explicit
+' filename:         filename.vba
+'
+' purpose:          xxxx
+'
+' usage:            xxxx
+'
+' dependencies:     xxxx
+'
+' By:               T.Sciple, MM/DD/YYYY
+
 'Define functions that retrieve/calculate data within the pipeData Class Module
 Public Function pipe_od(size As Double) As Double
     Dim pip As pipeData 'dimension a variable of type of custom class 'pipeData'
@@ -182,84 +193,7 @@ err:
 End Function
 
 
-Public Function buttweld_wt(nomSize As Double, sched As String, optional_thk As String)
-
-    Dim root_gap As Double
-    Dim root_face As Double
-    Dim thk As Double
-    Dim half_bevel_angle As Double
-    Dim leg2a As Double
-    Dim leg2b As Double
-    Dim PI As Double
-    
-    Dim area1 As Double
-    Dim area2 As Double
-    Dim area3 As Double
-    
-    Dim pipe_rad As Double
-    Dim rad1 As Double
-    Dim rad2 As Double
-    Dim rad3 As Double
-    
-    Dim vol1 As Double
-    Dim vol2 As Double
-    Dim vol3 As Double
-    
-    Dim sagitta_len As Double   'this is the math term for distance from chord line to outer radius,  height of weld
-    Dim chord_len As Double
-    Dim chord_radius As Double
-    Dim chord_ang_radians As Double
-    Dim dens_steel As Double    'density of steel in lbs per cubic inch
-    
-    PI = 3.14159265358979
-    
-    root_face = 0.0625   'reference weldbend catalog page 107
-    
-    If nomSize <= 6 Then
-        root_gap = 1 / 8   'Root Gap Tolerance is an non-essential variable and shall; comply with the WPS. Normal Root Gap used is 2.4mm +/- 0.8mm and it depends on factors like Thickness, size of Filler wire used for root pass, welder's skill and no restriction as per ASME B 31.3.
-    Else
-        root_gap = 5 / 32
-    End If
-    
-    half_bevel_angle = 75 / 2
-    pipe_rad = pipeData(nomSize, "", "od") / 2
-    thk = pipeData(nomSize, sched, "thk")
-
-    'compute areas and volumes
-    '1. Area of rectangle from root gap thru the thickness of the pipe
-    area1 = root_gap * thk
-    rad1 = pipe_rad - thk / 2
-    vol1 = 2 * PI * rad1 * area1
-    '2. Area of both triangles from root face od of pipe at the bevel angle
-    
-    leg2a = thk - root_face
-    leg2b = leg2a * Tan((half_bevel_angle) * PI / 180)
-    area2 = leg2a * leg2b
-    rad2 = pipe_rad - leg2a / 3
-    vol2 = 2 * PI * rad2 * area2
-    
-    '3. Compute the area of the outside weld cap by assuming it is equal to the area of a circular chord segment
-    If nomSize <= 8 Then
-        sagitta_len = 0.0625
-    Else
-        sagitta_len = 0.125
-    End If
-    
-    'calculate the estimated length of weld cap
-    chord_len = 2 * leg2b + root_gap + 2 * sagitta_len
-    chord_radius = chord_len ^ 2 / (8 * sagitta_len) + sagitta_len / 2
-    chord_ang_radians = 2 * Math.Arcsin(chord_len / (2 * chord_radius))
-    area3 = 0.5 * chord_radius ^ 2 * (chord_ang_radians - Sin(chord_ang_radians))
-    rad3 = pipe_rad + sagitta_len / 2    'this is the mid point which is slightly conservative
-    vol3 = 2 * PI * rad3 * area3
-    
-    'calculate the weight of the weld area
-    dens_steel = 0.2836
-    buttweld_wt = (vol1 + vol2 + vol3) * dens_steel ' density of steel
-End Function
-
-
-Public Function getSize1(strg)
+public Function getSize1(strg)
     Dim inchLoc1 As Integer
     inchLoc1 = InStr(1, strg, """", vbTextCompare)
     getSize1 = convFtInToDecIn(Left(strg, inchLoc1))
