@@ -92,3 +92,82 @@ Public Function get_sch_2(ByVal strg As String) _
         get_sch_2 = ""
     End If
 End Function
+
+
+Public Function get_size1_2(ByVal strg As String) _
+                         As String
+    
+    Dim inchLoc1 As Integer
+    inchLoc1 = InStr(1, strg, """", vbTextCompare)
+    If inchLoc1 = 0 Then GoTo NoSizeOneInfo
+    
+    
+    Dim inchLoc2 As Integer
+    inchLoc2 = InStr(inchLoc1 + 1, strg, """", vbTextCompare)
+    
+    'Make Sure that Size 2 is not actually a length
+    Dim LenLoc As Integer
+    
+    LenLoc = InStr(inchLoc1 + 1, LCase(strg), """ long", vbTextCompare)
+    
+    If LenLoc = 0 Then
+        LenLoc = InStr(inchLoc1 + 1, LCase(strg), """ lg", vbTextCompare)
+    End If
+    
+    If inchLoc2 = LenLoc Then GoTo NoSizeTwoInfo
+    'make sure that the character to left of inch mark is numeric
+    If Not IsNumeric(Mid(strg, inchLoc2 - 1, 1)) Then GoTo NoSizeTwoInfo
+        
+    'make sure that inchLoc2 - inchLoc1 is less than 12 otherwise assume that its not a size 2
+    If (inchLoc2 - inchLoc1) > 12 Then GoTo NoSizeTwoInfo
+        
+    get_size1_2 = Trim(Left(strg, inchLoc2 + 1))
+    
+    Exit Function   'Normal Exit if Size Info is found
+    
+NoSizeOneInfo:
+    get_size1_2 = ""
+
+NoSizeTwoInfo:
+    get_size1_2 = Trim(Left(strg, inchLoc1 + 1))
+    
+End Function
+
+
+Public Function get_desc(ByVal strg As String) _
+                         As String
+    
+    Dim inchLoc1 As Integer
+    inchLoc1 = InStr(1, strg, """", vbTextCompare)
+    If inchLoc1 = 0 Then GoTo NoSizeOneInfo
+    
+    Dim inchLoc2 As Integer
+    inchLoc2 = InStr(inchLoc1 + 1, strg, """", vbTextCompare)
+    
+    'Make Sure that Size 2 is not actually a length
+    Dim LenLoc As Integer
+    
+    LenLoc = InStr(inchLoc1 + 1, LCase(strg), """ long", vbTextCompare)
+    
+    If LenLoc = 0 Then
+        LenLoc = InStr(inchLoc1 + 1, LCase(strg), """ lg", vbTextCompare)
+    End If
+    
+    If inchLoc2 = LenLoc Then GoTo NoSizeTwoInfo
+    'make sure that the character to left of inch mark is numeric
+    If Not IsNumeric(Mid(strg, inchLoc2 - 1, 1)) Then GoTo NoSizeTwoInfo
+        
+    'make sure that inchLoc2 - inchLoc1 is less than 12 otherwise assume that its not a size 2
+    If (inchLoc2 - inchLoc1) > 12 Then GoTo NoSizeTwoInfo
+        
+    get_desc = Trim(Right(strg, Len(strg) - inchLoc2))
+    
+    Exit Function   'Normal Exit if Size Info is found
+    
+NoSizeOneInfo:
+    get_desc = Trim(strg)
+
+NoSizeTwoInfo:
+    get_desc = Trim(Right(strg, Len(strg) - inchLoc1))
+    
+End Function
