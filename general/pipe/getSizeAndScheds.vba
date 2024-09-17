@@ -15,7 +15,11 @@ Public Function getSize1(ByVal strg As String) _
     
     Dim inchLoc1 As Integer
     inchLoc1 = InStr(1, strg, """", vbTextCompare)
-    getSize1 = convFtInToDecIn(Left(strg, inchLoc1))
+    If inchLoc1 > 0 Then
+        getSize1 = convFtInToDecIn(Left(strg, inchLoc1))
+    Else
+        getSize1 = ""
+    End If
 End Function
 
 
