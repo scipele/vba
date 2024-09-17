@@ -35,6 +35,7 @@ Public Function getSize2(ByVal strg As String) _
             LenLoc = InStr(inchLoc1 + 1, LCase(strg), """ lg", vbTextCompare)
         End If
     
+    
     If inchLoc2 = LenLoc Then
         inchLoc2 = 0
     End If
@@ -42,6 +43,20 @@ Public Function getSize2(ByVal strg As String) _
     If inchLoc2 = 0 Then
         getSize2 = ""
     Else
+        'make sure that the character to left of inch mark is numeric
+        Dim prev_char As String
+        prev_char = Mid(strg, inchLoc2 - 1, 1)
+        If Not IsNumeric(prev_char) Then
+            getSize2 = ""
+            Exit Function
+        End If
+        
+        'make sure that inchLoc2 - inchLoc1 is less than 12 otherwise assume that its not a size 2
+        If (inchLoc2 - inchLoc1) > 12 Then
+            getSize2 = ""
+            Exit Function
+        End If
+        
         tmpSize2 = Mid(strg, inchLoc1, inchLoc2 - inchLoc1 + 1)
         locX = InStr(1, LCase(tmpSize2), "x", vbTextCompare)
         tmpSize2 = Right(tmpSize2, Len(tmpSize2) - locX)
