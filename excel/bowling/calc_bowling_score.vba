@@ -1,22 +1,22 @@
 Option Explicit
 
-' filename:     calc_bowling_score.vba
-'
+' filename:     CalcBowlingScore.vba
+' EntryPoint:   CalcBowlingScore
 ' Purpose:      custom formula for computing bowling score in excel, sample layout below
-'                     A         B       C       D       E       F       G       H       I       J       K
-'                 +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
-'              1  | Frame-> |   1   |   2   |   3   |   4   |   5   |   6   |   7   |   8   |   9   |  10   |
-'                 +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
-'              2  |         |  7 2  |  3 /  |  3 6  |  8 1  |  6 /  |  8 /  |   X   |  9 -  |   X   |  8 -   |
-'                 +  SEAN   +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
-'              3  |         |   9   |  22   |  31   |  40   |  58   |  78   |  97   |  106  |  124  |  132   |
-'                 +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
-'               Example Score Formula for Cell E3 '=calc_bowling_score(D3,E$1,E2,F2,G2)'
+'                       A         B       C       D       E       F       G       H       I       J       K
+'                   +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+'                1  | Frame-> |   1   |   2   |   3   |   4   |   5   |   6   |   7   |   8   |   9   |  10   |
+'                   +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+'                2  |         |  7 2  |  3 /  |  3 6  |  8 1  |  6 /  |  8 /  |   X   |  9 -  |   X   |  8 -   |
+'                   +  SEAN   +-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+'                3  |         |   9   |  22   |  31   |  40   |  58   |  78   |  97   |  106  |  124  |  132   |
+'                   +---------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+'                 Example Score Formula for Cell E3 '=CalcBowlingScore(D3,E$1,E2,F2,G2)'
 '
+' Inputs:       prevScore, frameNo, frameA, frameB, frameC
+' Outputs:      calculated Score for each frame
 ' Dependencies: None
-'
 ' By:  T.Sciple, 11/26/2024
-
 
 Private Enum scoreType
     stPrevScoreEmptyExceptFrameOne
@@ -27,15 +27,16 @@ Private Enum scoreType
 End Enum
 
 
-Function calc_bowling_score(ByVal prev_score As Variant, _
-                            ByVal frame_no As Long, _
-                            ByVal frame_a As String, _
-                            ByVal frame_b As String, _
-                            ByVal frame_c As String) _
+Public Function CalcBowlingScore(ByVal prevScore As Variant, _
+                            ByVal frameNo As Long, _
+                            ByVal frameA As String, _
+                            ByVal frameB As String, _
+                            ByVal frameC As String) _
                             As Variant  'using variant to return a "" empty value
     
+    
     Dim current_score_type As Integer
-    current_score_type = get_score_type(prev_score, frame_no, frame_a)
+    current_score_type = GetScoreType(prevScore, frameNo, frameA)
     
     Dim frame_score As Integer
     Dim num_rolls_to_get As Integer
@@ -43,106 +44,105 @@ Function calc_bowling_score(ByVal prev_score As Variant, _
     Select Case current_score_type
     
         Case stPrevScoreEmptyExceptFrameOne, stFrameDataEmpty
-            GoTo ReportNoScoreLabel
+            GoTo LblReportNoScore
         
         Case stSpare
             num_rolls_to_get = 1
-            frame_score = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
+            frame_score = GetNextRollOrRolls(frameNo, frameA, frameB, frameC, num_rolls_to_get)
             If frame_score = -1 Then
-                GoTo ReportNoScoreLabel
+                GoTo LblReportNoScore
             Else
                 frame_score = frame_score + 10
             End If
         
         Case stStrike
             num_rolls_to_get = 2    'default
-            Dim dblStrikeInTenthFrame As Boolean
-            Dim oneStrikeInTenthFrame As Boolean
+            Dim dbl_strike_in_tenth_frame As Boolean
+            Dim one_strike_in_tenth_frame As Boolean
             
-            If frame_no = 10 And Left(frame_a, 3) = "X X" Then
+            If frameNo = 10 And Left(frameA, 3) = "X X" Then
                 num_rolls_to_get = 1
-                dblStrikeInTenthFrame = True
-            ElseIf frame_no = 10 And Left(frame_a, 1) = "X" Then
-                oneStrikeInTenthFrame = True
+                dbl_strike_in_tenth_frame = True
+            ElseIf frameNo = 10 And Left(frameA, 1) = "X" Then
+                one_strike_in_tenth_frame = True
             End If
             
-            frame_score = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
+            frame_score = GetNextRollOrRolls(frameNo, frameA, frameB, frameC, num_rolls_to_get)
             
             'calculate score depending on the various cases
-            If frame_score = -1 Then GoTo ReportNoScoreLabel
+            If frame_score = -1 Then GoTo LblReportNoScore
             
             frame_score = Switch( _
-                          dblStrikeInTenthFrame, frame_score + 10 + 10, _
-                          oneStrikeInTenthFrame, 2 * frame_score + 10, _
+                          dbl_strike_in_tenth_frame, frame_score + 10 + 10, _
+                          one_strike_in_tenth_frame, 2 * frame_score + 10, _
                           True, frame_score + 10)
         
         Case stOther
-            frame_score = get_frame_score(frame_a)
+            frame_score = GetFrameScore(frameA)
     
     End Select
     
-    calc_bowling_score = CInt(prev_score) + frame_score
+    CalcBowlingScore = CInt(prevScore) + frame_score
     'exit if score was computed
     Exit Function
     
-ReportNoScoreLabel:
-    calc_bowling_score = ""
+LblReportNoScore:
+    CalcBowlingScore = ""
 
 End Function
 
 
-Function get_score_type(ByVal prev_score As Variant, _
-                        ByVal frame_no As Long, _
-                        ByVal frame_a As String _
+Private Function GetScoreType(ByVal prevScore As Variant, _
+                        ByVal frameNo As Long, _
+                        ByVal frameA As String _
                         ) As Integer
 
-    get_score_type = Switch( _
-                            prev_score = "" And frame_no <> 1, stPrevScoreEmptyExceptFrameOne, _
-                            frame_a = "", stFrameDataEmpty, _
-                            Mid(frame_a, 3, 1) = "/", stSpare, _
-                            Left(frame_a, 1) = "X", stStrike, _
+    GetScoreType = Switch( _
+                            prevScore = "" And frameNo <> 1, stPrevScoreEmptyExceptFrameOne, _
+                            frameA = "", stFrameDataEmpty, _
+                            Mid(frameA, 3, 1) = "/", stSpare, _
+                            Left(frameA, 1) = "X", stStrike, _
                             True, stOther _
                             )
-
 End Function
 
 
-Function get_frame_score(ByRef frame As String) As Variant
+Private Function GetFrameScore(ByRef frame As String) As Variant
 
-    Dim roll As Variant
-    roll = Split(frame, " ")
+    Dim rolls As Variant
+    rolls = Split(frame, " ")
     
     'convert any dashes to zeros
-    If roll(0) = "-" Then roll(0) = 0
-    If roll(1) = "-" Then roll(1) = 0
+    If rolls(0) = "-" Then rolls(0) = 0
+    If rolls(1) = "-" Then rolls(1) = 0
 
-    get_frame_score = CInt(roll(0)) + CInt(roll(1))
+    GetFrameScore = CInt(rolls(0)) + CInt(rolls(1))
 
 End Function
 
 
-Function get_next_roll( _
-                        ByVal frame_no As Long, _
-                        ByVal frame_a As String, _
-                        ByVal frame_b As String, _
-                        ByVal frame_c As String, _
-                        ByVal num_rolls_to_add As Integer) As Integer
+Private Function GetNextRollOrRolls( _
+                        ByVal frameNo As Long, _
+                        ByVal frameA As String, _
+                        ByVal frameB As String, _
+                        ByVal frameC As String, _
+                        ByVal numRollsToAdd As Integer) As Integer
     
     Dim str As String
     
     'check to see if you are on the tenth frame where there are three possible scores)
-    If frame_no = 10 And Len(frame_a) > 3 Then
-        If num_rolls_to_add = 1 Then
-            str = Right(frame_a, 1) & " "
+    If frameNo = 10 And Len(frameA) > 3 Then
+        If numRollsToAdd = 1 Then
+            str = Right(frameA, 1) & " "
         Else
-            str = Right(frame_a, Len(frame_a) - 2) & " "
+            str = Right(frameA, Len(frameA) - 2) & " "
         End If
     Else
-        str = frame_b & " " & frame_c
+        str = frameB & " " & frameC
     End If
     
-    If Len(str) <= num_rolls_to_add Then
-        get_next_roll = -1  'return -1 if not enough data to score
+    If Len(str) <= numRollsToAdd Then
+        GetNextRollOrRolls = -1  'return -1 if not enough data to score
         Exit Function
     End If
     
@@ -155,7 +155,7 @@ Function get_next_roll( _
     indx = 0
     For Each roll In rolls
         indx = indx + 1
-        If indx > num_rolls_to_add Then
+        If indx > numRollsToAdd Then
             Exit For
         End If
         
@@ -170,5 +170,5 @@ Function get_next_roll( _
         End If
     Next roll
     
-    get_next_roll = score
+    GetNextRollOrRolls = score
 End Function

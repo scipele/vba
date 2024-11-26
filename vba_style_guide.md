@@ -9,7 +9,9 @@
 - Dont use 'magic numbers' in your programs, but declare them with a descriptive variable or const name 
 - Explicitely indicate subs/functions as public or private (make only public if it needs to be accessed outside of module level code)
 - Use For each type loops where possible which eliminate the need for an index and make it more efficient
-- dont use strings in select case statements, but use Enums which makes things more efficent 
+- Dont use strings in select case statements, but use Enums which makes things more efficent
+- Use pass by reference for larger arrays which is more efficient
+- Use User Defined Types (UDTs) to help organize related variables when it makes sense
 
 ## 2. Module Documentation Example
 - filename:       sampleFilename.vba
