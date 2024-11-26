@@ -1,20 +1,46 @@
 # Sciple's VBA Style Guide
-- 
 
-## Working with Arrays, Ranges, Efficiently Outputting Arrays back to Worksheet Ranges
-- read_output_array_to_sheet_w_format.vba
-- read_sort_unique_remove_elem_output_array_1d.vba
+## 1. General
+- Always Use Option Explicit
+- Two Spaces before Functions including any comments
+- Indentation set to four spaces i.e. default
 
-## 1. Always Use Option Explicit
-2. Two Spaces before Functions
-3. Indentation set to four spaces i.e. default
-3. Variable Naming
-	+------------------------------------------------------+---------------------------------------+
-	| Description                                          | Example                               |
-	+------------------------------------------------------+---------------------------------------+
-	| Enums -> Name them with CamelCase 'scoreType'        | scoreType                             |
-	| Enum Elements -> Prefix them with a shortened name   | stPrevScoreEmptyExceptFrameOne        |
-    | Local variable names                                 | snake_case                            |
-	| Constants                                            | ALL_CAP_SNAKE_CASE                    |
-	| Labels                                               | PascalCaseReportNoScoreLabel          |
-	+------------------------------------------------------+---------------------------------------+
+## 2. Module Documentation
+- filename:     sampleFilename.vba
+ - Purpose:
+ - Inputs:
+ - Outputs:
+ - Dependencies: None
+ - By:  T.Sciple, MM/DD/YYYY
+
+## 3. Naming of Subs, Functions, Variables, Constants, Class Items
+| Description                                    | Example                               |
+|------------------------------------------------|---------------------------------------|
+| Sub Naming, Use Verb-Noun Structure            | `PascalCase` -> GenerateReport        |
+| Function Naming, Use Verb-Noun Structure       | `PascalCase` -> ExportDataToCSV       |
+| Local Variable Names                           | `snake_case`                          |
+| Constants                                      | `ALL_CAP_SNAKE_CASE`                  |
+| Labels                                         | `PascalCaseReportNoScoreLabel`        |
+| Error Handlers                                 | `PascalCase` -> Err_CalculateTotals   |
+| Class Naming, Use a Noun for Name              | `PascalCase` -> DataExporter          |
+| Class Methods                                  | `PascalCase`                          |
+| Class Private Members                          | `camelCase` -> _internalData          |
+| Class Properties                               | `PascalCase` -> TotalAmount           |
+| Enums -> Name Them with CamelCase              | `scoreType`                           |
+| Enum Elements -> Prefix Them with Short Name   | `stPrevScoreEmptyExceptFrameOne`      |
+| For event handlers, follow VBA's convention    | `hyphenated PascalCase Button_Click` |
+	
+## 4. Clear Listing of Sub and Function Parameters
+| Description                                              | Example                                             |
+|----------------------------------------------------------|-----------------------------------------------------|
+| **Function Parameters**: Use Line Break so that each one can be on a separate line | ` _` |
+| **Parameter Type**: Always specify the type, even for `Variant` | `ByVal prev_score As Variant`                      |
+| **Pass by Value or Reference**: Explicitly declare `ByVal` or `ByRef` | `ByVal prev_score As Variant` or `ByRef prev_score As Variant` |
+| **Return Type**: Always declare the return type | `As Variant` (for returning a value) or `Sub` (for Subs that don’t return) |
+
+- Example:
+`code`
+Function FindColumnByLabel(ByVal label As String, _
+                           ByVal searchRow As Long, _
+						   ByVal shtName As String) _
+						   As Long'
