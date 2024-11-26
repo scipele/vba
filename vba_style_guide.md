@@ -16,30 +16,30 @@
 ## 3. Naming of Subs, Functions, Variables, Constants, Class Items
 | Description                                           | Example                               |
 |-------------------------------------------------------|---------------------------------------|
-| Sub Naming, Use Verb-Noun Structure                   | `PascalCase` -> GenerateReport        |
-| Function Naming, Use Verb-Noun Structure              | `PascalCase` -> ExportDataToCSV       |
-| Function Parameter Names                              | `camelCase` -> productPrice           |
-| Local Variable Names                                  | `snake_case`                          |
-| Constants                                             | `ALL_CAP_SNAKE_CASE`                  |
-| Labels                                                | `PascalCaseReportNoScoreLabel`        |
-| Error Handlers                                        | `hyphenated Pascal` -> Err_CalcTotals |
-| Class Naming, Use a Noun for Name                     | `PascalCase` -> DataExporter          |
-| Class Methods                                         | `PascalCase`                          |
-| Class Private Members                                 | `camelCase` -> _internalData          |
-| Class Properties                                      | `PascalCase` -> TotalAmount           |
-| Enums -> Name Them with CamelCase                     | `scoreType`                           |
-| Enum Elements -> Prefix Them with Short Name          | `stPrevScoreEmptyExceptFrameOne`      |
-| For event handlers, follow VBA's convention           | `hyphenated PascalCase Button_Click`  |
+| `Sub Naming, Use Verb-Noun Structure                 `| `PascalCase -> GenerateReport        `|
+| `Function Naming, Use Verb-Noun Structure            `| `PascalCase -> ExportDataToCSV       `|
+| `Function Parameter Names                            `| `camelCase -> productPrice           `|
+| `Local Variable Names                                `| `snake_case                          `|
+| `Constants                                           `| `ALL_CAP_SNAKE_CASE                  `|
+| `Labels                                              `| `PascalCaseReportNoScoreLabel        `|
+| `Error Handlers                                      `| `hyphenated Pascal -> Err_CalcTotals `|
+| `Class Naming, Use a Noun for Name                   `| `PascalCase-> DataExporter           `|
+| `Class Methods                                       `| `PascalCase                          `|
+| `Class Private Members                               `| `camelCase -> _internalData          `|
+| `Class Properties                                    `| `PascalCase -> TotalAmount           `|
+| `Enums -> Name Them with camelCase                   `| `camelCase -> scoreType              `|
+| `Enum Elements -> Prefix Them with Short Name        `| `stPrevScoreEmptyExceptFrameOne      `|
+| `For event handlers, follow VBA's convention         `| `hyphenated PascalCase Button_Click  `|
  	
 ## 4. Clear Listing of Sub and Function Parameters
 | Description                                           | Example                               |
 |-------------------------------------------------------|---------------------------------------|
-| **Function Parameters**: Use Line Break Per Parameter | `ByVal user_input As Variant, _`      |
-| **Parameter Type**: Always specify the data type      | `ByVal prev_score As Variant`         |
-| **Pass by Value or Reference**: Explicitly declare    | `ByVal prev_score As Variant`         |
-| **Function Return Type **: Always declare return type | `As Variant` (for returning a value)  |
+| `Function Parameters: Use Line Break Per Parameter   `| `ByVal user_input As Variant, _      `|
+| `Parameter Type: Always specify the data type        `| `ByVal prev_score As Variant         `|
+| `Pass by Value or Reference: Explicitly declare      `| `ByVal prev_score As Variant         `|
+| `Function Return Type: Always declare return type    `| `As Variant (for returning  value)   `|
 
-- Example:
+ - Example:
 ```vba
 Function FindColumnByLabel(ByVal label As String, _  
                            ByVal searchRow As Long, _  
