@@ -15,15 +15,16 @@ Option Explicit
 '
 ' Dependencies: None
 '
-' By:  T.Sciple, 11/25/2024
+' By:  T.Sciple, 11/26/2024
 
 
-'Defined Global Constants for scoring types or Enums
-Const SCORE_NO_PREV As Integer = 0      'No previous score unless on frame 1
-Const SCORE_NO_FRAME_DATA As Integer = 1
-Const SCORE_SPARE As Integer = 2
-Const SCORE_STRIKE As Integer = 3
-Const SCORE_OTHER As Integer = 4
+Private Enum scoreType
+    stPrevScoreEmptyExceptFrameOne
+    stFrameDataEmpty
+    stSpare
+    stStrike
+    stOther
+End Enum
 
 
 Function calc_bowling_score(ByVal prev_score As Variant, _
@@ -33,27 +34,27 @@ Function calc_bowling_score(ByVal prev_score As Variant, _
                             ByVal frame_c As String) _
                             As Variant  'using variant to return a "" empty value
     
-    Dim score_type As Integer
-    score_type = get_score_type(prev_score, frame_no, frame_a)
+    Dim current_score_type As Integer
+    current_score_type = get_score_type(prev_score, frame_no, frame_a)
     
-    Dim tmp As Integer
+    Dim frame_score As Integer
     Dim num_rolls_to_get As Integer
     
-    Select Case score_type
+    Select Case current_score_type
     
-        Case SCORE_NO_PREV, SCORE_NO_FRAME_DATA
-            GoTo report_no_score
+        Case stPrevScoreEmptyExceptFrameOne, stFrameDataEmpty
+            GoTo ReportNoScoreLabel
         
-        Case SCORE_SPARE
+        Case stSpare
             num_rolls_to_get = 1
-            tmp = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
-            If tmp = -1 Then
-                GoTo report_no_score
+            frame_score = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
+            If frame_score = -1 Then
+                GoTo ReportNoScoreLabel
             Else
-                tmp = tmp + 10
+                frame_score = frame_score + 10
             End If
         
-        Case SCORE_STRIKE
+        Case stStrike
             num_rolls_to_get = 2    'default
             Dim dblStrikeInTenthFrame As Boolean
             Dim oneStrikeInTenthFrame As Boolean
@@ -65,26 +66,26 @@ Function calc_bowling_score(ByVal prev_score As Variant, _
                 oneStrikeInTenthFrame = True
             End If
             
-            tmp = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
+            frame_score = get_next_roll(frame_no, frame_a, frame_b, frame_c, num_rolls_to_get)
             
             'calculate score depending on the various cases
-            If tmp = -1 Then GoTo report_no_score
+            If frame_score = -1 Then GoTo ReportNoScoreLabel
             
-            tmp = Switch( _
-                          dblStrikeInTenthFrame, tmp + 10 + 10, _
-                          oneStrikeInTenthFrame, tmp + tmp + 10, _
-                          True, tmp + 10)
+            frame_score = Switch( _
+                          dblStrikeInTenthFrame, frame_score + 10 + 10, _
+                          oneStrikeInTenthFrame, 2 * frame_score + 10, _
+                          True, frame_score + 10)
         
-        Case SCORE_OTHER
-            tmp = get_frame_score(frame_a)
+        Case stOther
+            frame_score = get_frame_score(frame_a)
     
     End Select
     
-    calc_bowling_score = CInt(prev_score) + tmp
+    calc_bowling_score = CInt(prev_score) + frame_score
     'exit if score was computed
     Exit Function
     
-report_no_score:
+ReportNoScoreLabel:
     calc_bowling_score = ""
 
 End Function
@@ -96,11 +97,11 @@ Function get_score_type(ByVal prev_score As Variant, _
                         ) As Integer
 
     get_score_type = Switch( _
-                            prev_score = "" And frame_no <> 1, SCORE_NO_PREV, _
-                            frame_a = "", SCORE_NO_FRAME_DATA, _
-                            Mid(frame_a, 3, 1) = "/", SCORE_SPARE, _
-                            Left(frame_a, 1) = "X", SCORE_STRIKE, _
-                            True, SCORE_OTHER _
+                            prev_score = "" And frame_no <> 1, stPrevScoreEmptyExceptFrameOne, _
+                            frame_a = "", stFrameDataEmpty, _
+                            Mid(frame_a, 3, 1) = "/", stSpare, _
+                            Left(frame_a, 1) = "X", stStrike, _
+                            True, stOther _
                             )
 
 End Function
@@ -135,7 +136,7 @@ Function get_next_roll( _
             str = Right(frame_a, 1) & " "
         Else
             str = Right(frame_a, Len(frame_a) - 2) & " "
-        End If        
+        End If
     Else
         str = frame_b & " " & frame_c
     End If
