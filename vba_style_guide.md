@@ -5,11 +5,11 @@
 - Two Spaces before Functions including any comments
 - Indentation set to four spaces i.e. default
 - Initialize or Dim variables immediately before use or just above code blocks
-- Dont use of base 1 <- which is noobish
-- Dont use 'magic numbers' in your programs, but declare them with a descriptive variable or const name 
-- Explicitely indicate subs/functions as public or private (make only public if it needs to be accessed outside of module level code)
+- Avoid use of base 1
+- Avoid use 'magic numbers' in your programs, but declare them with a descriptive variable or const name 
+- Explicitly indicate subs/functions as public or private (make only public if it needs to be accessed outside of module level code)
 - Use For each type loops where possible which eliminate the need for an index and make it more efficient
-- Dont use strings in select case statements, but use Enums which makes things more efficent
+- Avoid use strings in select case statements, but use Enums which makes things more efficient
 - Use pass by reference for larger arrays which is more efficient
 - Use User Defined Types (UDTs) to help organize related variables when it makes sense
 
