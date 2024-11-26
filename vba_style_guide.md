@@ -22,7 +22,7 @@
 
 ## 3. Naming of Subs, Functions, Variables, Constants, Class Items
 | Description                                           | CaseName               | Example              |
-|-------------------------------------------------------|-----------------------`|----------------------|
+|-------------------------------------------------------|------------------------|----------------------|
 | `Sub Naming, Use Verb-Noun Structure                 `| `PascalCase           `|`GenerateReport      `|
 | `Function Naming, Use Verb-Noun Structure            `| `PascalCase           `|`ExportDataToCSV     `|
 | `Function Parameter Names                            `| `camelCase            `|`productPrice        `|
