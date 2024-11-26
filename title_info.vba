@@ -1,5 +1,5 @@
 Option Explicit
-'| Item	         | Documentation Notes                                         |
+'|`Item	        `|`Documentation Notes                                        `|
 '|---------------|-------------------------------------------------------------|
 '|` Filename    `| `x.vba                                                     `|
 '|` EntryPoint  `| `xxx                                                       `|
