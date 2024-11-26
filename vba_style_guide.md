@@ -14,13 +14,15 @@
 - Use User Defined Types (UDTs) to help organize related variables when it makes sense
 
 ## 2. Module Documentation Example
-- filename:       sampleFilename.vba
- - EntryPoint:    Indicate the main Sub or Function that is the Entry Point into the Program
- - Purpose:       compute estimate work hours for various
- - Inputs:        varies
- - Outputs:       number of work hours
- - Dependencies:  Indicate if any libraries are used or none
- - By:  T.Sciple, MM/DD/YYYY
+| Item               |Notes                                                                             |
+|--------------------|----------------------------------------------------------------------------------|
+|` Filename         `| `sampleFilename.vba                                                             `|
+|` EntryPoint       `| `Indicate the main Sub or Function that is the Entry Point into the Program     `|
+|` Purpose          `| `compute estimate work hours for various                                        `|
+|` Inputs           `| `varies                                                                         `|
+|` Outputs          `| `number of work hours                                                           `|
+|` Dependencies     `| `Indicate if any libraries are used or none                                     `|
+|` By/Name/Date     `| `T.Sciple, MM/DD/YYYY                                                           `|
 
 ## 3. Naming of Subs, Functions, Variables, Constants, Class Items
 | Description                                           | CaseName               | Example              |
