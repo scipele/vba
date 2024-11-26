@@ -27,6 +27,15 @@ Private Enum scoreType
 End Enum
 
 
+Public Type FrameData
+    prevScore As Variant
+    frmNo As Long       'Current Frame Number
+    frmA As String      'Current Frame Being Computed
+    frmB As String      'First Frame to the right
+    frmC As String      'Second Frame to the right
+End Type
+
+
 Public Function CalcBowlingScore(ByVal prevScore As Variant, _
                             ByVal frameNo As Long, _
                             ByVal frameA As String, _
@@ -34,9 +43,16 @@ Public Function CalcBowlingScore(ByVal prevScore As Variant, _
                             ByVal frameC As String) _
                             As Variant  'using variant to return a "" empty value
     
+    'read the passed parameter data into the UDT
+    Dim fd As FrameData
+    fd.prevScore = prevScore
+    fd.frmNo = frameNo
+    fd.frmA = frameA
+    fd.frmB = frameB
+    fd.frmC = frameC
     
     Dim current_score_type As Integer
-    current_score_type = GetScoreType(prevScore, frameNo, frameA)
+    current_score_type = GetScoreType(fd)
     
     Dim frame_score As Integer
     Dim num_rolls_to_get As Integer
@@ -48,7 +64,7 @@ Public Function CalcBowlingScore(ByVal prevScore As Variant, _
         
         Case stSpare
             num_rolls_to_get = 1
-            frame_score = GetNextRollOrRolls(frameNo, frameA, frameB, frameC, num_rolls_to_get)
+            frame_score = GetNextRollOrRolls(fd, num_rolls_to_get)
             If frame_score = -1 Then
                 GoTo LblReportNoScore
             Else
@@ -60,14 +76,14 @@ Public Function CalcBowlingScore(ByVal prevScore As Variant, _
             Dim dbl_strike_in_tenth_frame As Boolean
             Dim one_strike_in_tenth_frame As Boolean
             
-            If frameNo = 10 And Left(frameA, 3) = "X X" Then
+            If frameNo = 10 And Left(fd.frmA, 3) = "X X" Then
                 num_rolls_to_get = 1
                 dbl_strike_in_tenth_frame = True
-            ElseIf frameNo = 10 And Left(frameA, 1) = "X" Then
+            ElseIf fd.frmNo = 10 And Left(fd.frmA, 1) = "X" Then
                 one_strike_in_tenth_frame = True
             End If
             
-            frame_score = GetNextRollOrRolls(frameNo, frameA, frameB, frameC, num_rolls_to_get)
+            frame_score = GetNextRollOrRolls(fd, num_rolls_to_get)
             
             'calculate score depending on the various cases
             If frame_score = -1 Then GoTo LblReportNoScore
@@ -78,11 +94,11 @@ Public Function CalcBowlingScore(ByVal prevScore As Variant, _
                           True, frame_score + 10)
         
         Case stOther
-            frame_score = GetFrameScore(frameA)
+            frame_score = GetFrameScore(fd.frmA)
     
     End Select
     
-    CalcBowlingScore = CInt(prevScore) + frame_score
+    CalcBowlingScore = CInt(fd.prevScore) + frame_score
     'exit if score was computed
     Exit Function
     
@@ -92,16 +108,13 @@ LblReportNoScore:
 End Function
 
 
-Private Function GetScoreType(ByVal prevScore As Variant, _
-                        ByVal frameNo As Long, _
-                        ByVal frameA As String _
-                        ) As Integer
+Private Function GetScoreType(ByRef fd As FrameData) As Integer
 
     GetScoreType = Switch( _
-                            prevScore = "" And frameNo <> 1, stPrevScoreEmptyExceptFrameOne, _
-                            frameA = "", stFrameDataEmpty, _
-                            Mid(frameA, 3, 1) = "/", stSpare, _
-                            Left(frameA, 1) = "X", stStrike, _
+                            fd.prevScore = "" And fd.frmNo <> 1, stPrevScoreEmptyExceptFrameOne, _
+                            fd.frmA = "", stFrameDataEmpty, _
+                            Mid(fd.frmA, 3, 1) = "/", stSpare, _
+                            Left(fd.frmA, 1) = "X", stStrike, _
                             True, stOther _
                             )
 End Function
@@ -121,24 +134,20 @@ Private Function GetFrameScore(ByRef frame As String) As Variant
 End Function
 
 
-Private Function GetNextRollOrRolls( _
-                        ByVal frameNo As Long, _
-                        ByVal frameA As String, _
-                        ByVal frameB As String, _
-                        ByVal frameC As String, _
-                        ByVal numRollsToAdd As Integer) As Integer
+Private Function GetNextRollOrRolls(ByRef fd As FrameData, _
+                                    ByVal numRollsToAdd As Integer) As Integer
     
     Dim str As String
     
     'check to see if you are on the tenth frame where there are three possible scores)
-    If frameNo = 10 And Len(frameA) > 3 Then
+    If fd.frmNo = 10 And Len(fd.frmA) > 3 Then
         If numRollsToAdd = 1 Then
-            str = Right(frameA, 1) & " "
+            str = Right(fd.frmA, 1) & " "
         Else
-            str = Right(frameA, Len(frameA) - 2) & " "
+            str = Right(fd.frmA, Len(fd.frmA) - 2) & " "
         End If
     Else
-        str = frameB & " " & frameC
+        str = fd.frmB & " " & fd.frmC
     End If
     
     If Len(str) <= numRollsToAdd Then
