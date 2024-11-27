@@ -22,7 +22,8 @@ End Enum
 
 
 Public Function GetNextOutlineNumber(ByVal prevOutlineNo As String, _
-                                     ByVal levelNo As Integer) As String
+                                     ByVal levelNo As Integer, _
+                                     Optional ByVal formatCode As String = "") As String
     
     'Cleanup Previous String for Processing Purposes
     prevOutlineNo = CleanPrevString(prevOutlineNo)
@@ -47,7 +48,7 @@ Public Function GetNextOutlineNumber(ByVal prevOutlineNo As String, _
         levelNo < prev_num_level, otLowerLevel, _
         (levelNo - prev_num_level) = 1, otHigherLevel)
     
-    GetNextOutlineNumber = GetStrFromParts(outl_type, parts(), prevOutlineNo, prev_num_level, levelNo)
+    GetNextOutlineNumber = GetStrFromParts(outl_type, parts(), prevOutlineNo, prev_num_level, levelNo, formatCode)
 End Function
 
 
@@ -55,10 +56,12 @@ Private Function GetStrFromParts(ByVal outl_type As Integer, _
                                  ByRef parts() As String, _
                                  ByVal prevOutlineNo As String, _
                                  ByVal prev_num_level As Integer, _
-                                 ByVal levelNo As Integer) As String
+                                 ByVal levelNo As Integer, _
+                                 ByVal formatCode As String) As String
                                      
+    
     Dim format_code As String
-    format_code = IIf(levelNo > 1, "00", "0")
+    format_code = GetFormatCode(levelNo, formatCode)
     
     Dim pad_lead As String
     pad_lead = GetPadding(levelNo)
@@ -99,12 +102,29 @@ Private Function GetStrFromParts(ByVal outl_type As Integer, _
             If UBound(parts) < levelNo - 1 Then
                 ReDim Preserve parts(0 To prev_num_level)
             End If
-            parts(UBound(parts)) = "01"
+            parts(UBound(parts)) = Format(1, format_code)
     
     End Select
     
     If str = "" Then str = pad_lead & IIf(levelNo = 1, parts(0) & ".", Join(parts, "."))
     GetStrFromParts = str
+End Function
+
+
+Private Function GetFormatCode(ByVal levelNo As Integer, ByVal formatCode As String) As String
+    
+    If levelNo = 0 Then
+        GetFormatCode = "00"
+        Exit Function
+    End If
+    
+    ' Determine the format code for the given level
+    If formatCode <> "" And levelNo <= Len(formatCode) Then
+        GetFormatCode = String(CInt(Mid(formatCode, levelNo, 1)), "0")
+    Else
+        ' Default to "00" for levels greater than 1 and "0" for level 1
+        GetFormatCode = IIf(levelNo > 1, "00", "0")
+    End If
 End Function
 
 
