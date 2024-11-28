@@ -33,7 +33,7 @@
 | `Local Variable Names                                `| `snake_case           `|`current_count       `|
 | `Arrays                                              `| `pluralcamelCase      `|`orderNumbers        `|
 | `Constants                                           `| `UPPER_SNAKE_CASE     `|`ACCELERATION_GRAVITY`|
-| `Labels                                              `| `prefixedPascalCase   `|`LblReportNoScore    `|
+| `Labels                                              `| `prefixedPascalCase   `|`Lbl_ReportNoScore    `|
 | `Error Handlers                                      `| `hyphenated Pascal    `|`Err_CalcTotals      `|
 | `Class Naming, Use a Noun for Name                   `| `PascalCase           `|`DataExporter        `|
 | `Class Methods                                       `| `PascalCase           `|`CurrentTime         `|
