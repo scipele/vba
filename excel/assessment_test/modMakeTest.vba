@@ -193,7 +193,8 @@ Private Sub SaveTestResultsToCSV(ByRef tdFrm() As TestData, _
     Dim testFileName As String
     testFileName = ThisWorkbook.Path & _
                    "\test_results_" & _
-                   ud.last_first_middle_name & _
+                   ud.last_first_middle_name & "_" & _
+                   ud.selected_test_id & _
                    ".csv"
     
     ' Open the CSV file for appending data (or create it if it doesn't exist)
@@ -228,5 +229,4 @@ Private Sub SaveTestResultsToCSV(ByRef tdFrm() As TestData, _
     
     ' Close the file
     Close fileNumber
-
 End Sub
