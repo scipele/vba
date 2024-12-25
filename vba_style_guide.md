@@ -37,7 +37,7 @@
 | `Error Handlers                                      `| `hyphenated Pascal    `|`Err_CalcTotals      `|
 | `Class Naming, Use a Noun for Name                   `| `PascalCase           `|`DataExporter        `|
 | `Class Methods                                       `| `PascalCase           `|`CurrentTime         `|
-| `Class Private Members                               `| `camelCase            `|`_internalData       `|
+| `Class Private Members                               `| `_camelCase            `|`_internalData       `|
 | `Class Properties                                    `| `PascalCase           `|`TotalAmount         `|
 | `Enums -> Name Them with camelCase                   `| `camelCase            `|`costType            `|
 | `Enum Elements -> Prefix Them with Short Name        `| `prefixCamelCase      `|`ctDirectCost        `|
