@@ -1,6 +1,15 @@
-'Class ClsQuestionData
-
 Option Explicit
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | ClsQuestionData.cls                                         |
+'| EntryPoint   | Each index is instantiated in the 'ClsTestData'             |
+'|              | .ReadTableData method for each row of table data in the     |
+'|              | spreadhseet                                                 |
+'| Purpose      | Store Job Applicant Data                                    |
+'| Inputs       | Various Setters                                             |
+'| Outputs      | Various Getters                                             |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 12/26/2024
 
 Private m_quest_id As Integer
 Private m_question_text As String
@@ -23,11 +32,15 @@ End Property
 
 
 ' Setter for a specific potential answer by index
-Public Property Let PotentialAnswer(ByVal index As Integer, ByVal value As String)
-    If index >= LBound(m_potentialAnswer) And index <= UBound(m_potentialAnswer) Then
+Public Property Let PotentialAnswer(ByVal index As Integer, _
+                                    ByVal value As String)
+                                    
+    If index >= LBound(m_potentialAnswer) _
+    And index <= UBound(m_potentialAnswer) Then
         m_potentialAnswer(index) = value
     Else
-        Err.Raise vbObjectError + 1, "ClsQuestionData", "Index out of bounds for potential answers."
+        Err.Raise vbObjectError + 1, "ClsQuestionData", _
+        "Index out of bounds for potential answers."
     End If
 End Property
 

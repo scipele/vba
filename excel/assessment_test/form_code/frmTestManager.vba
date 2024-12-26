@@ -13,39 +13,40 @@ Option Explicit
 Private m_ad As ClsApplicantData
 Private m_td As ClsTestData
 Dim currentQuestion As ClsQuestionData
-
 Private questionIndx As Integer
 
 
 Public Sub InitializeTestDataForm()
-    
     ' Initialize the applicant object
     Set m_ad = modMain.ad
     Set m_td = modMain.td
     
-    ' Method to gather test questions and potential answers from the spreadsheet
+    ' Method to get test questions and potential answers from the spreadsheet
     Dim selected_test As Long
+    selected_test = m_ad.SelectedTestIndx
     
-    selected_test = m_ad.SelectedTest
+    ' Call the following method to read the test questions amd potential
+    ' answers using the Class 'ClsTestData' and  its referenced
+    ' Class 'ClsQuestionData'
     
-    ' Call the following method to read the test questions amd potential answers using
-    ' the Class 'ClsTestData' and
-    ' its refeenced Class 'ClsQuestionData'
-    
-    m_td.ReadTableData m_ad.SelectedTest
+    m_td.ReadTableData m_ad.SelectedTestIndx
     questionIndx = 1
     
-    Call DisplayQuestionAndPotentialAnswers
-    Me.Show
+    'Sub to set the label values and visibility
+    DisplayQuestionAndPotentialAnswers
     
+    ' Display the form
+    Me.Show
 End Sub
 
 
 Private Sub DisplayQuestionAndPotentialAnswers()
-
     ' Display the question and restore the saved answer
     If questionIndx > 0 And questionIndx <= m_td.NumQuestions Then
 
+        ' Set the current question object based on the current index.
+        ' Note that the new keyword is not used because the private member
+        ' data is already set with the method 'm_td.ReadTableData'
         Set currentQuestion = m_td.GetQuestionData(questionIndx)
         
         'Update the label captions
@@ -92,14 +93,14 @@ End Sub
 Private Sub UpdateNavigationButtons()
     cmdPrevious.Enabled = questionIndx > 1
     cmdNext.Enabled = questionIndx < m_td.NumQuestions
-
 End Sub
 
 
 Private Sub cmdNext_Click()
     If questionIndx > 0 And questionIndx <= m_td.NumQuestions Then
         If currentQuestion.SelectedAnswer = 0 Then
-            MsgBox "Please select an answer before proceeding.", vbExclamation
+            MsgBox "Please select an answer before proceeding.", _
+            vbExclamation
             Exit Sub
         End If
     End If
@@ -125,10 +126,12 @@ Private Sub cmdSubmit_Click()
     success = m_td.SubmitAnswers()
     
     If success Then
-        MsgBox "All answers have been submitted successfully!", vbInformation, "Submission Complete"
+        MsgBox "All answers have been submitted successfully!", _
+            vbInformation, "Submission Complete"
         Unload Me
     Else
-        MsgBox "Please answer all questions before submitting.", vbExclamation, "Incomplete Answers"
+        MsgBox "Please answer all questions before submitting.", _
+            vbExclamation, "Incomplete Answers"
     End If
 
 End Sub
@@ -161,7 +164,7 @@ Private Sub UpdateSelectedAnswer(SelectedAnswer As Integer)
     
     If questionIndx = m_td.NumQuestions Then
         MsgBox ("Note that this is the last question:" & vbCr & _
-                "Make sure that you answered all questions and Press Submit Completed Answers")
+                "Make sure that you answered all questions and " & _
+                "Press Submit Completed Answers")
     End If
-    
 End Sub

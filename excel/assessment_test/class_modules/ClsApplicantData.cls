@@ -1,6 +1,13 @@
-'Class Module 'ClsApplicantData'
-
 Option Explicit
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | ClsApplicantData.cls                                        |
+'| EntryPoint   | Instatiated in Modmain                                      |
+'| Purpose      | Store Job Applicant Data                                    |
+'| Inputs       | Various Setters                                             |
+'| Outputs      | Various Getters                                             |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 12/26/2024
 
 Private m_lastName As String
 Private m_firstName As String
@@ -21,47 +28,52 @@ End Function
 
 
 ' Method to Set All Name Properties
-Public Sub SetNames(ByVal LastName As String, ByVal FirstName As String, ByVal MiddleName As String)
+Public Sub SetNames(ByVal LastName As String, _
+                    ByVal FirstName As String, _
+                    ByVal MiddleName As String)
+                    
     m_lastName = Trim(LastName)
     m_firstName = Trim(FirstName)
     m_middleName = Trim(MiddleName)
 End Sub
 
 
-'Setter 'Let' for the Test Selection
-Public Property Let SelectedTest(ByVal value As Long)
+' Setter 'Let' for the Test Selection
+Public Property Let SelectedTestIndx(ByVal value As Long)
     m_selectedTestIndx = value
 End Property
 
 
 'Getter 'Get' for the Test Selection
-Public Property Get SelectedTest() As Long
-    SelectedTest = m_selectedTestIndx
+Public Property Get SelectedTestIndx() As Long
+    SelectedTestIndx = m_selectedTestIndx
 End Property
 
 
-'Setter 'Let'
+' Setter 'Let'
 Public Property Let TestScore(ByVal value As Long)
     m_testScore = value
 End Property
 
 
-'Getter 'Get'
+' Getter 'Get'
 Public Property Get TestScore() As Long
     TestScore = m_testScore
 End Property
 
 
-'Method to get the name of the test taken
+' Method to get the name of the test taken
 Public Function GetSelectedTestName(ByVal indx As Long)
     GetSelectedTestName = m_testNames(indx)
 End Function
 
 
-'Method to see if any names are incomplete
+' Method to see if any names are incomplete
 Public Function IsNameDataIncomplete() As Boolean
     If m_firstName = "" Or m_lastName = "" Or m_middleName = "" Then
-        MsgBox "Please fill in all name fields.", vbExclamation, "Missing Information"
+        MsgBox "Please fill in all name fields.", _
+        vbExclamation, "Missing Information"
+       
         IsNameDataIncomplete = True
     Else
         IsNameDataIncomplete = False
@@ -69,10 +81,12 @@ Public Function IsNameDataIncomplete() As Boolean
 End Function
 
 
-'Method to see if the 'SelectedTest' combo box was selected
+' Method to see if the 'SelectedTest' combo box was selected
 Public Function IsSelectedTestIndxNotSet() As Boolean
     If (m_selectedTestIndx = -1) Then
-        MsgBox "Please select the Test", vbExclamation, "Missing Information"
+        MsgBox "Please select the Test", _
+        vbExclamation, "Missing Information"
+        
         IsSelectedTestIndxNotSet = True
     Else
         IsSelectedTestIndxNotSet = False
@@ -80,14 +94,20 @@ Public Function IsSelectedTestIndxNotSet() As Boolean
 End Function
 
 
-'Method to get this names of the Tests that are in the Excel Hidden Tab that is named Table0
-Public Function GetTestList() As Variant
-    Dim ws As Worksheet
-    Dim lo As ListObject
-    Dim colIndex As Integer
-    Dim dataRange As Range
-    Dim resultArray() As Variant
-    Dim i As Long
+' Public method to get the list of Test Names
+Public Function TestNames() As Variant
+    ' Set the list if not already done
+    If IsEmpty(m_testNames) Then
+        SetTestList
+    End If
+    
+    TestNames = m_testNames
+End Function
+
+
+' Method to get this names of the Tests that are in the Excel Hidden
+' Tab named Table0
+Public Sub SetTestList()
 
     ' Reference the worksheet and table
     Dim sht_name As String
@@ -95,36 +115,40 @@ Public Function GetTestList() As Variant
     Dim tbl_name As String
     tbl_name = "Table0"
     
+    Dim ws As Worksheet
     Set ws = ThisWorkbook.Worksheets(sht_name)
+    Dim lo As ListObject
     Set lo = ws.ListObjects(tbl_name)
     
     ' Get the column index for the 'test_name' field
     On Error Resume Next
+    Dim colIndex As Integer
     colIndex = lo.ListColumns("test_name").index
     On Error GoTo 0
     
     If colIndex = 0 Then
-        MsgBox "The 'test_name' field was not found in Table0.", vbExclamation, "Error"
-        Exit Function
+        MsgBox "The 'test_name' field was not found in Table0.", _
+        vbExclamation, "Error"
+        Exit Sub
     End If
     
     ' Reference the data range for the 'test_name' column
+    Dim dataRange As Range
     Set dataRange = lo.ListColumns(colIndex).DataBodyRange
     
     ' If the table has rows, populate the array
+    Dim resultArray() As Variant
+    Dim indx As Long
     If Not dataRange Is Nothing Then
         ReDim resultArray(1 To dataRange.Rows.count)
-        For i = 1 To dataRange.Rows.count
-            resultArray(i) = dataRange.Cells(i, 1).value
-        Next i
+        For indx = 1 To dataRange.Rows.count
+            resultArray(indx) = dataRange.Cells(indx, 1).value
+        Next indx
     Else
         ' Return an empty array if no rows are present
         resultArray = Array()
     End If
 
-    'Set Private Member Variable
+    ' Set Private Member Variable
     m_testNames = resultArray
-    
-    ' Return the result array
-    GetTestList = resultArray
-End Function
+End Sub

@@ -1,15 +1,13 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "ClsTestData"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
-'Class ClsTestData
-
 Option Explicit
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | ClsTestData.cls                                             |
+'| EntryPoint   | Instantiated in Modmain                                     |
+'| Purpose      | Store Test Data                                             |
+'| Inputs       | Various Setters                                             |
+'| Outputs      | Various Getters                                             |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 12/26/2024
 
 Private m_numQuestions As Long
 Private m_ad As ClsApplicantData
@@ -31,11 +29,10 @@ Public Property Get NumQuestions() As Long
 End Property
 
 
-Public Sub ReadTableData(ByVal SelectedTest As Long)
-    
-    ' Construct the table name based on the index
+Public Sub ReadTableData(ByVal SelectedTestIndx As Long)
+    ' Construct the table name based on the zero based index
     Dim tblName As String
-    tblName = "Table" & SelectedTest + 1
+    tblName = "Table" & SelectedTestIndx + 1
 
     ' Check if the table exists
     On Error Resume Next
@@ -63,27 +60,31 @@ Public Sub ReadTableData(ByVal SelectedTest As Long)
     Dim tblRow As ListRow
     For Each tblRow In tbl.ListRows
     
-        ' Instantiate the ClsQuestionData object for each index 'indx'
+        ' Instantiate the 'ClsQuestionData' object for each index 'indx'
         Set m_qd(indx) = New ClsQuestionData
         
-        m_qd(indx).QuestionId = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("quest_id").index).value
-        m_qd(indx).QuestionText = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("question_text").index).value
-        m_qd(indx).PotentialAnswer(1) = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_1").index).value
-        m_qd(indx).PotentialAnswer(2) = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_2").index).value
-        m_qd(indx).PotentialAnswer(3) = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_3").index).value
-        m_qd(indx).PotentialAnswer(4) = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_4").index).value
-        m_qd(indx).CorrectAnswer = tbl.DataBodyRange.Cells(indx, tbl.ListColumns("correct_answer").index).value
+        m_qd(indx).QuestionId = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("quest_id").index).value
+        m_qd(indx).QuestionText = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("question_text").index).value
+        m_qd(indx).PotentialAnswer(1) = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_1").index).value
+        m_qd(indx).PotentialAnswer(2) = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_2").index).value
+        m_qd(indx).PotentialAnswer(3) = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_3").index).value
+        m_qd(indx).PotentialAnswer(4) = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("answer_4").index).value
+        m_qd(indx).CorrectAnswer = _
+            tbl.DataBodyRange.Cells(indx, tbl.ListColumns("correct_answer").index).value
         indx = indx + 1
     Next tblRow
-
 End Sub
 
 
-
 Public Function SubmitAnswers() As Boolean
-    
     Dim i As Integer
-     Dim allAnswered As Boolean
+    Dim allAnswered As Boolean
     Dim ws As Worksheet
     Dim tbl As ListObject
     Dim tblRow As ListRow
@@ -104,18 +105,24 @@ Public Function SubmitAnswers() As Boolean
         Exit Function
     End If
 
-    'Set private object reference to be the same as the original instance
+    ' Set private object reference to be the same as the original instance
     Set m_ad = modMain.ad
 
     ' Save answers to the Excel table
-    Set ws = ThisWorkbook.Sheets("data_hide") ' Replace with your actual sheet name
-    Set tbl = ws.ListObjects("Table" & m_ad.SelectedTest + 1) ' Adjust table naming as needed
+    Dim sheet_name As String
+    sheet_name = "data_hide"
+    
+    Set ws = ThisWorkbook.Sheets(sheet_name)
+    Set tbl = ws.ListObjects("Table" & m_ad.SelectedTestIndx + 1)
     For i = 1 To m_numQuestions
         ' Find the corresponding row in the table using the quest_id
         For Each tblRow In tbl.ListRows
-            If tblRow.Range(tbl.ListColumns("quest_id").index).value = m_qd(i).QuestionId Then
+            If tblRow.Range(tbl.ListColumns("quest_id").index).value = _
+                m_qd(i).QuestionId Then
+                
                 ' Update the selected_answer column
-                tblRow.Range(tbl.ListColumns("selected_answer").index).value = m_qd(i).SelectedAnswer
+                tblRow.Range(tbl.ListColumns("selected_answer").index).value = _
+                    m_qd(i).SelectedAnswer
                 
                 ' Check to see if the answer is correct or not
                 If m_qd(i).SelectedAnswer = m_qd(i).CorrectAnswer Then
@@ -141,17 +148,15 @@ Public Function SubmitAnswers() As Boolean
     
     Call SaveTestResultsToCSV
     
-    
 End Function
 
 
 Private Sub SaveTestResultsToCSV()
-
     Dim testFileName As String
     testFileName = ThisWorkbook.Path & _
                    "\test_results_" & _
                    m_ad.GetLastFirstMiddleName & "_" & _
-                   m_ad.SelectedTest & _
+                   m_ad.SelectedTestIndx & _
                    ".csv"
     
     ' Open the CSV file for appending data (or create it if it doesn't exist)
@@ -174,17 +179,16 @@ Private Sub SaveTestResultsToCSV()
     
     ' Write the test taker's information as a new row in the CSV
     Print #fileNumber, "Last_First_Middle_Name: " & _
-                        m_ad.GetLastFirstMiddleName & vbCr & _
+                            m_ad.GetLastFirstMiddleName & vbCr & _
                         "Test Taken: " & _
-                        m_ad.GetSelectedTestName(m_ad.SelectedTest + 1) & vbCr & _
+                            m_ad.GetSelectedTestName(m_ad.SelectedTestIndx + 1) & vbCr & _
                         "Test Score: " & _
-                        m_ad.TestScore & vbCr & _
+                            m_ad.TestScore & vbCr & _
                         "Selected_Answers_Numeric: " & _
-                        selected_answers & vbCr & _
+                            selected_answers & vbCr & _
                         "Correct_Answers_Numeric : " & _
-                        correct_answers & vbCr & ""
+                            correct_answers
     
     ' Close the file
     Close fileNumber
 End Sub
-
