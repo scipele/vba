@@ -1,8 +1,51 @@
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | Strings.vba                                                 |
+'| Purpose      | various subs for string manipulation                        |
+'| By Name,Date | T.Sciple, 12/14/2024                                        |
+'|--------------|-------------------------------------------------------------|
+'| Listing of Functions in thie module:                                       |
+'|     Function GetRatingLargeOrSmallBore                                     |
+'|     Function GetRatingSmallBore                                            |
+'|     Function GetValveApiTrim                                               |
+'|     Function GetValveBodyMatl                                              |
+'|     Function GetValveOpererator                                            |
+'|     Function GetValveType                                                  |
+'|     Function GetValveWedgeType                                             |
+'|     Function GetWeldSchedule                                               |
+'|     Function OddNo                                                         |
+'|     Function PadLeadZeros                                                  |
+'|     Function PadTrailSpaces                                                |
+'|     Function RemoveMultSpaces                                              |
+'|     Function asciien                                                       |
+'|     Function findInReverse                                                 |
+'|     Function getTextBetween                                                |
+'|     Function getTextLftOf                                                  |
+'|     Function getTextRghtOf                                                 |
+'|     Sub CreateHyperLink                                                    |
+'|     Sub MergeContentsWithCarriageReturn                                    |
+'|     Sub MergeContentsWithComma                                             |
+'|     Sub MergeContentsWithSpace                                             |
+'|     Sub MergeContentsWithoutCarriageReturn                                 |
+'|     Sub PasteDn                                                            |
+'|     Sub RemoveAnyLineFeedChar                                              |
+'|     Sub SplitCellsByDelimiter                                              |
+'|     Sub TrimLeadingAndTrailingSpaces                                       |
+'|     Sub UpperC                                                             |
+'|     Sub addApst                                                            |
+'|     Sub lowerC                                                             |
+'|     Sub properC                                                            |
+
+
+'**************************************************************
+'************************* TEXT PARTS ************************* 
+'**************************************************************
+
 Public Function getTextLftOf(ByVal text As String, _
-                      ByVal matchTxt As String, _
-                      ByVal startLoc As Integer, _
-                      ByVal noDelimeters As Integer) _
-                      As String
+                             ByVal matchTxt As String, _
+                             ByVal startLoc As Integer, _
+                             ByVal noDelimeters As Integer) _
+                             As String
     Dim i
     Dim Location As Long
     For i = 1 To noDelimeters
@@ -15,8 +58,8 @@ End Function
 
 
 Public Function getTextRghtOf(ByVal text As String, _
-                       ByVal matchTxt As String) _
-                       As String
+                              ByVal matchTxt As String) _
+                              As String
     Dim Location As Long
     Location = InStr(1, text, matchTxt, vbTextCompare)
     
@@ -27,11 +70,11 @@ End Function
 
 
 Public Function getTextBetween(ByVal text As String, _
-                        ByVal param1 As String, _
-                        ByVal param2 As String, _
-                        ByVal Seq1 As String, _
-                        ByVal Seq2 As String) _
-                        As String
+                               ByVal param1 As String, _
+                               ByVal param2 As String, _
+                               ByVal Seq1 As String, _
+                               ByVal Seq2 As String) _
+                               As String
     Dim i As Integer
     Dim Location1 As Long
     Dim startLoc As Long
@@ -54,172 +97,12 @@ Public Function getTextBetween(ByVal text As String, _
 End Function
 
 
-Public Function lookForSimilarText(ByVal lookupText As String, _
-                            ByVal lookupRng As Range) _
-                            As Variant
-
-    Dim i As Long
-    For i = 0 To UBound(lookupRng())
-        Location = InStr(1, UCase(lookupRng(i)), UCase(lookupText), vbTextCompare)
-        If Location > 0 Then Exit For
-    Next i
-    
-    If Location > 0 Then
-        lookForSimilarText = lookupRng(i).Value2
-    Else
-        lookForSimilarText = "Not Found"
-    End If
-
-End Function
-
-
-Public Function lookForSimilarTextRow(ByVal lookupText As String, _
-                               ByVal lookupRng As Range) _
-                               As Variant
-
-    'returns the row number were text is found in a given range
-    Dim i As Long
-    For i = 0 To UBound(lookupRng())
-        Location = InStr(1, UCase(lookupRng(i)), UCase(lookupText), vbTextCompare)
-        If Location > 0 Then Exit For
-    Next i
-    
-    If Location > 0 Then
-        lookForSimilarTextRow = i
-    Else
-        lookForSimilarTextRow = "Not Found"
-    End If
-End Function
-
-
-Public Function get_vlv_oper_type(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, ", HW", vbTextCompare) > 0, "HW", _
-        InStr(1, str, "Gear", vbTextCompare) > 0, "Gear")
-    If IsNull(tmp) Then tmp = ""
-    get_vlv_oper_type = tmp
-End Function
-
-
-Public Function get_vlv_wedge_type(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "Flex Wdg", vbTextCompare) > 0, "Flex Wdg", _
-        InStr(1, str, "Flexible Wedge", vbTextCompare) > 0, "Flex Wdg", _
-        InStr(1, str, "Sol Wdg", vbTextCompare) > 0, "Sol Wdg", _
-        InStr(1, str, "Solid Wdg", vbTextCompare) > 0, "Solid Wdg")
-    If IsNull(tmp) Then tmp = ""
-    get_vlv_wedge_type = tmp
-End Function
-
-
-Public Function get_vlv_type(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "GAT", vbTextCompare) > 0, "GATE", _
-        InStr(1, str, "BALL", vbTextCompare) > 0, "BALL", _
-        InStr(1, str, "CHECK", vbTextCompare) > 0, "CHECK", _
-        InStr(1, str, "CHK", vbTextCompare) > 0, "CHECK", _
-        InStr(1, str, "NEEDLE", vbTextCompare) > 0, "NEEDLE", _
-        InStr(1, str, "GLOBE", vbTextCompare) > 0, "GLOBE")
-    If IsNull(tmp) Then tmp = "not found"
-    get_vlv_type = tmp
-End Function
-
-
-Public Function get_vlv_body_matl(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "A216 WCB", vbTextCompare) > 0, "A216-WCB", _
-        InStr(1, str, "A352 LCC", vbTextCompare) > 0, "A352-LCC", _
-        InStr(1, str, "A105", vbTextCompare) > 0, "A105", _
-        InStr(1, str, "A216 WCB", vbTextCompare) > 0, "A216-WCB", _
-        InStr(1, str, "A350 LF2 CI 1", vbTextCompare) > 0, "A350-LF2-CL1", _
-        InStr(1, str, "A350 LF2 CI 1", vbTextCompare) > 0, "A350-LF2-CL1", _
-        InStr(1, str, "A350", vbTextCompare) > 0, "A350-LF2-CL1")  ' address typo missing info
-    If IsNull(tmp) Then tmp = "not found"
-    get_vlv_body_matl = tmp
-End Function
-
-
-Public Function get_vlv_api_trim(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "#6", vbTextCompare) > 0, "#6", _
-        InStr(1, str, "#8", vbTextCompare) > 0, "#8", _
-        InStr(1, str, "#10", vbTextCompare) > 0, "#10", _
-        InStr(1, str, "#10", vbTextCompare) > 0, "#10", _
-        InStr(1, str, "#12", vbTextCompare) > 0, "#12", _
-        InStr(1, str, "SS316 TRIM", vbTextCompare) > 0, "#10")
-    If IsNull(tmp) Then tmp = "not found"
-    get_vlv_api_trim = tmp
-End Function
-
-
-Public Function get_rtg_lb_or_sb(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
-                 InStr(1, str, "300", vbTextCompare) > 0, "300", _
-                 InStr(1, str, "600", vbTextCompare) > 0, "600", _
-                 InStr(1, str, "800", vbTextCompare) > 0, "800", _
-                 InStr(1, str, "900", vbTextCompare) > 0, "900", _
-                 InStr(1, str, "150", vbTextCompare) > 0, "150", _
-                 InStr(1, str, "2500", vbTextCompare) > 0, "2500")
-    If IsNull(tmp) Then tmp = "not found"
-    get_rtg_lb_or_sb = tmp
-End Function
-
-
-Public Function get_rtg_lb(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
-                 InStr(1, str, "300", vbTextCompare) > 0, "300", _
-                 InStr(1, str, "600", vbTextCompare) > 0, "600", _
-                 InStr(1, str, "900", vbTextCompare) > 0, "900", _
-                 InStr(1, str, "150", vbTextCompare) > 0, "150", _
-                 InStr(1, str, "2500", vbTextCompare) > 0, "2500")
-    If IsNull(tmp) Then tmp = "not found"
-    get_rtg_lb = tmp
-End Function
-
-
-Function get_rtg_sb(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
-        InStr(1, str, "800", vbTextCompare) > 0, "800")
-    If IsNull(tmp) Then tmp = "not found"
-    get_rtg_sb = tmp
-End Function
-
-
-Function get_weld_sch1(str As String) As String
-    Dim tmp As Variant  'used variant to handle the null if not found
-    tmp = Switch(InStr(1, str, "3000", vbTextCompare) > 0, "XS", _
-        InStr(1, str, "S-0.625", vbTextCompare) > 0, "0.625", _
-        InStr(1, str, "6000", vbTextCompare) > 0, "160", _
-        InStr(1, str, "S-40S", vbTextCompare) > 0, "40S", _
-        InStr(1, str, "S-80S", vbTextCompare) > 0, "80S", _
-        InStr(1, str, "S-10S", vbTextCompare) > 0, "10S", _
-        InStr(1, str, "S-STD", vbTextCompare) > 0, "STD", _
-        InStr(1, str, "S-XS", vbTextCompare) > 0, "XS", _
-        InStr(1, str, "S-XXS", vbTextCompare) > 0, "XXS", _
-        InStr(1, str, "S-20", vbTextCompare) > 0, "20", _
-        InStr(1, str, "S-30", vbTextCompare) > 0, "30", _
-        InStr(1, str, "S-60", vbTextCompare) > 0, "60", _
-        InStr(1, str, "S-80", vbTextCompare) > 0, "80", _
-        InStr(1, str, "S-40", vbTextCompare) > 0, "40", _
-        InStr(1, str, "S-100", vbTextCompare) > 0, "100", _
-        InStr(1, str, "S-120", vbTextCompare) > 0, "120", _
-        InStr(1, str, "S-160", vbTextCompare) > 0, "160" _
-        )
-    If IsNull(tmp) Then tmp = "not found"
-    get_weld_sch1 = tmp
-End Function
-
-
+'***************************************************************************
+'************************* SPLIT AND MERGE CELLS *************************** 
+'***************************************************************************
 Sub SplitCellsByDelimiter()
-    Dim cell As Range
-    Dim delimiter As Variant
-    Dim splitValues As Variant
-    Dim i As Integer
-    
     ' Prompt the user for the delimiter
+    Dim delimiter As Variant
     delimiter = InputBox("Enter the delimiter:", "Delimiter")
     
     If delimiter = "vbLf" Then delimiter = vbLf
@@ -233,80 +116,266 @@ Sub SplitCellsByDelimiter()
     End If
     
     ' Iterate through each selected cell
+    Dim cell As Range
+    Dim splitValues As Variant
     For Each cell In Selection
         ' Split the cell value by the delimiter
-        splitValues = Split(cell.Value, delimiter)
-        
+        splitValues = Split(cell.value, delimiter)
         ' Clear the current cell
-        cell.Value = ""
-        
+        cell.value = ""
         ' Place the split values in the cell and adjacent cells to the right
+        Dim i As Integer
         For i = LBound(splitValues) To UBound(splitValues)
-            cell.Offset(0, i).Value = splitValues(i)
+            cell.Offset(0, i).value = splitValues(i)
         Next i
     Next cell
 End Sub
 
 
-Public Sub merge_contents_w_cr()
+Public Sub MergeContentsWithCarriageReturn()
     Dim i As Long
+    Dim cell as Range
     For Each cell In Selection
         i = i + 1
-        ActiveCell.Value = Switch(i = 1, cell.Value & vbCrLf, _
-                        i < Selection.Count, ActiveCell.Value & cell.Value & vbCrLf, _
-                        i = Selection.Count, ActiveCell.Value & cell.Value)
-        If i > 1 Then cell.Value = ""
+        ActiveCell.value = Switch(i = 1, cell.value & vbCrLf, _
+                                  i < Selection.Count, ActiveCell.value & cell.value & vbCrLf, _
+                                  i = Selection.Count, ActiveCell.value & cell.value)
+        If i > 1 Then cell.value = ""
     Next cell
 End Sub
 
 
-Public Sub merge_contents_w0_cr()
+Public Sub MergeContentsWithSpace()
     Dim i As Long
+    Dim cell As Range
     For Each cell In Selection
         i = i + 1
-        ActiveCell.Value = Switch(i = 1, cell.Value, _
-                        i <= Selection.Count, ActiveCell.Value & cell.Value)
-        If i > 1 Then cell.Value = ""
+        ActiveCell.value = Switch(i = 1, cell.value & " ", _
+                                  i < Selection.Count, ActiveCell.value & cell.value & " ", _
+                                  i = Selection.Count, ActiveCell.value & cell.value)
+        If i > 1 Then cell.value = ""
     Next cell
 End Sub
 
 
-Public Sub merge_contents_w_comma()
+Public Sub MergeContentsWithoutCarriageReturn()
     Dim i As Long
+    Dim cell as Range
     For Each cell In Selection
         i = i + 1
-        ActiveCell.Value = Switch(i = 1, cell.Value & ",", _
-                        i < Selection.Count, ActiveCell.Value & cell.Value & ",", _
-                        i = Selection.Count, ActiveCell.Value & cell.Value)
-        If i > 1 Then cell.Value = ""
+        ActiveCell.value = Switch(i = 1, cell.value, _
+                        i <= Selection.Count, ActiveCell.value & cell.value)
+        If i > 1 Then cell.value = ""
     Next cell
 End Sub
 
 
+Public Sub MergeContentsWithComma()
+    Dim i As Long
+    Dim cell as Range
+    For Each cell In Selection
+        i = i + 1
+        ActiveCell.value = Switch(i = 1, cell.value & ",", _
+                        i < Selection.Count, ActiveCell.value & cell.value & ",", _
+                        i = Selection.Count, ActiveCell.value & cell.value)
+        If i > 1 Then cell.value = ""
+    Next cell
+End Sub
+
+
+'**************************************************************************************
+'************************* RETURN RATINGS FOR PIPE COMPONENTS ************************* 
+'**************************************************************************************
+Public Function GetValveOpereratorType(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, ", HW", vbTextCompare) > 0, "HW", _
+        InStr(1, str, "Gear", vbTextCompare) > 0, "Gear")
+    If IsNull(tmp) Then tmp = ""
+    GetValveOpereratorType = tmp
+End Function
+
+
+Public Function GetValveWedgeType(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "Flex Wdg", vbTextCompare) > 0, "Flex Wdg", _
+                 InStr(1, str, "Flexible Wedge", vbTextCompare) > 0, "Flex Wdg", _
+                 InStr(1, str, "Sol Wdg", vbTextCompare) > 0, "Sol Wdg", _
+                 InStr(1, str, "Solid Wdg", vbTextCompare) > 0, "Solid Wdg")
+    If IsNull(tmp) Then tmp = ""
+    GetValveWedgeType = tmp
+End Function
+
+
+Public Function GetValveType(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "GAT", vbTextCompare) > 0, "GATE", _
+                 InStr(1, str, "BALL", vbTextCompare) > 0, "BALL", _
+                 InStr(1, str, "CHECK", vbTextCompare) > 0, "CHECK", _
+                 InStr(1, str, "CHK", vbTextCompare) > 0, "CHECK", _
+                 InStr(1, str, "NEEDLE", vbTextCompare) > 0, "NEEDLE", _
+                 InStr(1, str, "GLOBE", vbTextCompare) > 0, "GLOBE")
+    If IsNull(tmp) Then tmp = "not found"
+    GetValveType = tmp
+End Function
+
+
+Public Function GetValveBodyMatl(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "A216 WCB", vbTextCompare) > 0, "A216-WCB", _
+                 InStr(1, str, "A352 LCC", vbTextCompare) > 0, "A352-LCC", _
+                 InStr(1, str, "A105", vbTextCompare) > 0, "A105", _
+                 InStr(1, str, "A216 WCB", vbTextCompare) > 0, "A216-WCB", _
+                 InStr(1, str, "A350 LF2 CI 1", vbTextCompare) > 0, "A350-LF2-CL1", _
+                 InStr(1, str, "A350 LF2 CI 1", vbTextCompare) > 0, "A350-LF2-CL1", _
+                 InStr(1, str, "A350", vbTextCompare) > 0, "A350-LF2-CL1")  ' address typo missing info
+    If IsNull(tmp) Then tmp = "not found"
+    GetValveBodyMatl = tmp
+End Function
+
+
+Public Function GetValveApiTrim(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "#6", vbTextCompare) > 0, "#6", _
+                 InStr(1, str, "#8", vbTextCompare) > 0, "#8", _
+                 InStr(1, str, "#10", vbTextCompare) > 0, "#10", _
+                 InStr(1, str, "#10", vbTextCompare) > 0, "#10", _
+                 InStr(1, str, "#12", vbTextCompare) > 0, "#12", _
+                 InStr(1, str, "SS316 TRIM", vbTextCompare) > 0, "#10")
+    If IsNull(tmp) Then tmp = "not found"
+    get_vlv_api_trim = tmp
+End Function
+
+
+Public Function GetRatingLargeOrSmallBore(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
+                 InStr(1, str, "300", vbTextCompare) > 0, "300", _
+                 InStr(1, str, "600", vbTextCompare) > 0, "600", _
+                 InStr(1, str, "800", vbTextCompare) > 0, "800", _
+                 InStr(1, str, "900", vbTextCompare) > 0, "900", _
+                 InStr(1, str, "150", vbTextCompare) > 0, "150", _
+                 InStr(1, str, "2500", vbTextCompare) > 0, "2500")
+    If IsNull(tmp) Then tmp = "not found"
+    GetRatingLargeOrSmallBore = tmp
+End Function
+
+
+Public Function GetRatingLargeBore(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
+                 InStr(1, str, "300", vbTextCompare) > 0, "300", _
+                 InStr(1, str, "600", vbTextCompare) > 0, "600", _
+                 InStr(1, str, "900", vbTextCompare) > 0, "900", _
+                 InStr(1, str, "150", vbTextCompare) > 0, "150", _
+                 InStr(1, str, "2500", vbTextCompare) > 0, "2500")
+    If IsNull(tmp) Then tmp = "not found"
+    GetRatingLargeBore = tmp
+End Function
+
+
+Function GetRatingSmallBore(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "1500", vbTextCompare) > 0, "1500", _
+                 InStr(1, str, "800", vbTextCompare) > 0, "800")
+    If IsNull(tmp) Then tmp = "not found"
+    GetRatingSmallBore = tmp
+End Function
+
+
+Function GetWeldSchedule(str As String) As String
+    Dim tmp As Variant  'used variant to handle the null if not found
+    tmp = Switch(InStr(1, str, "3000", vbTextCompare) > 0, "XS", _
+                 InStr(1, str, "S-0.625", vbTextCompare) > 0, "0.625", _
+                 InStr(1, str, "6000", vbTextCompare) > 0, "160", _
+                 InStr(1, str, "S-40S", vbTextCompare) > 0, "40S", _
+                 InStr(1, str, "S-80S", vbTextCompare) > 0, "80S", _
+                 InStr(1, str, "S-10S", vbTextCompare) > 0, "10S", _
+                 InStr(1, str, "S-STD", vbTextCompare) > 0, "STD", _
+                 InStr(1, str, "S-XS", vbTextCompare) > 0, "XS", _
+                 InStr(1, str, "S-XXS", vbTextCompare) > 0, "XXS", _
+                 InStr(1, str, "S-20", vbTextCompare) > 0, "20", _
+                 InStr(1, str, "S-30", vbTextCompare) > 0, "30", _
+                 InStr(1, str, "S-60", vbTextCompare) > 0, "60", _
+                 InStr(1, str, "S-80", vbTextCompare) > 0, "80", _
+                 InStr(1, str, "S-40", vbTextCompare) > 0, "40", _
+                 InStr(1, str, "S-100", vbTextCompare) > 0, "100", _
+                 InStr(1, str, "S-120", vbTextCompare) > 0, "120", _
+                 InStr(1, str, "S-160", vbTextCompare) > 0, "160" _
+        )
+    If IsNull(tmp) Then tmp = "not found"
+    GetWeldSchedule = tmp
+End Function
+
+'****************************************************************
+'************************* STRING CASES ************************* 
+'****************************************************************
 Public Sub UpperC()
+    Dim cell as Range
     For Each cell In Selection
-    cell.Value = UCase(cell.Value)
+        cell.value = UCase(cell.value)
     Next cell
 End Sub
 
 
 Public Sub lowerC()
+    Dim cell as Range
     For Each cell In Selection
-    cell.Value = LCase(cell.Value)
+        cell.value = LCase(cell.value)
     Next cell
 End Sub
 
 
 Public Sub properC()
+    Dim words As Variant
+    Dim word As Variant
+    Dim cell As Range
+    Dim prop_str As String
+    
     For Each cell In Selection
-    cell.Value = WorksheetFunction.Proper(cell.Value)
+        prop_str = ""
+        
+        words = Split(LCase(cell.value))
+        For Each word In words
+            word = UCase(Left(word, 1)) & Right(word, Len(word) - 1)
+            If prop_str = "" Then
+                prop_str = word
+            Else
+                prop_str = prop_str & " " & word
+            End If
+        Next word
+        cell.value = prop_str
+    Next cell
+End Sub
+
+'****************************************************************
+'************************* STRING MODS ************************** 
+'****************************************************************
+Public Sub addApst()
+    For Each cell In Selection
+        cell.Value = "'" & cell.Value
     Next cell
 End Sub
 
 
-Public Sub addApst()
+Public Sub RemoveAnyLineFeedChar()
+    Dim cell As Range
+    Dim str As String
+    ' Iterate through each selected cell
     For Each cell In Selection
-    cell.Value = "'" & cell.Value
+        str = cell.value
+        ' Replace all occurrences of vbCrLf, vbCR, and vbLF
+        str = Replace(str, vbCrLf, " ") ' Replace combined carriage return + line feed
+        str = Replace(str, vbCr, " ")   ' Replace carriage return
+        str = Replace(str, vbLf, " ")   ' Replace line feed
+        cell.value = str
+    Next cell
+End Sub
+
+
+Public Sub TrimLeadingAndTrailingSpaces()
+    Dim cell As Range
+    For Each cell In Selection
+        cell.value = Trim(cell.value)
     Next cell
 End Sub
 
@@ -320,7 +389,7 @@ End Function
 
 
 Public Sub PasteDn()
-'Selected Range Cells are copied down to blank cells below with identical values
+    'Selected Range Cells are copied down to blank cells below with identical values
     Dim lastcellVal, currentText As Variant
     Dim cell As Variant
     
@@ -336,47 +405,16 @@ Public Sub PasteDn()
     Next cell
     
     Call macrSettings.Restore
-
-End Sub
-
-Public Sub CreateHyperLink()
-'Selected Range Cells are copied down to blank cells below with identical values
-    Dim LinkAry As Variant
-    Dim i, j, curRow As Long
-    Dim curtxt As String
-    
-    'set the starting location for your hyperlinks
-    startCol = Selection.Column + 2
-    startRow = Selection.row
-    startColLtr = Split(Cells(startRow, startCol).Address, "$")(1)
-    
-    LinkAry = Selection
-    
-    curRow = startRow
-    
-    For i = LBound(LinkAry, 1) To UBound(LinkAry, 1)
-        If IsNumeric(LinkAry(i, 1)) = True Then
-            curtxt = CStr(LinkAry(i, 1))
-        Else:
-            curtxt = LinkAry(i, 1)
-        End If
-        
-        ActiveSheet.Hyperlinks.Add Range(startColLtr & curRow), Address:=LinkAry(i, 2), TextToDisplay:=curtxt
-        curRow = curRow + 1
-    Next i
-
 End Sub
 
 
-Public Function OddNo(x As Long)
-'PURPOSE: Test whether an number is odd or even
-
+Public Function OddNo(ByVal x As Long)
+    'PURPOSE: Test whether an number is odd or even
     If x Mod 2 = 0 Then
         OddNo = False
     Else
         OddNo = True
     End If
-
 End Function
 
 
@@ -393,7 +431,6 @@ Public Function PadTrailSpaces(inp As String, numChars As Integer)
     End If
     
     Dim build_return As String
-
     'start with it equal to the input
     build_return = inp
 
@@ -402,7 +439,6 @@ Public Function PadTrailSpaces(inp As String, numChars As Integer)
     Wend
     
     PadTrailSpaces = build_return
-
 End Function
 
 
@@ -446,3 +482,47 @@ Public Function asciien(ByVal s As String) As String
    
    Debug.Print asciien
 End Function
+
+'****************************************************************
+'************************* HYPERLINKS *************************** 
+'****************************************************************
+Public Sub CreateHyperLink()
+    
+    'Selected Range Cells are copied down to blank cells below with identical values
+    'Example Usage: with selection on A1:B2
+    '+-----+------------------+--------------------+----------------------------------+
+    '|     |         A        |         B          |                  C               |
+    '+-----+------------------+--------------------+----------------------------------+
+    '|  1  |  my_link_name1   | c:\t\test.my_file1 |    my_link_name1<-placed here    |
+    '|  2  |  my_link_name2   | c:\t\test.my_file2 |    my_link_name2<-placed here    |
+    '+-----+------------------+--------------------+----------------------------------+
+    
+    'set the starting location for your hyperlinks (2 columns over from the staring spot)
+    Dim startCol As Long
+    startCol = Selection.Column + 2
+    
+    Dim startRow As Long
+    startRow = Selection.row
+    
+    Dim startColLtr As String
+    startColLtr = Split(Cells(startRow, startCol).Address, "$")(1)
+    
+    Dim LinkAry As Variant
+    LinkAry = Selection
+    
+    Dim curRow As Long
+    curRow = startRow
+    
+    'loop thru each item in the selection and create the hyperlink from each
+    Dim i As Long
+    Dim curtxt As String
+    For i = LBound(LinkAry, 1) To UBound(LinkAry, 1)
+        If IsNumeric(LinkAry(i, 1)) = True Then
+            curtxt = CStr(LinkAry(i, 1))
+        Else:
+            curtxt = LinkAry(i, 1)
+        End If
+        ActiveSheet.Hyperlinks.Add Range(startColLtr & curRow), Address:=LinkAry(i, 2), TextToDisplay:=curtxt
+        curRow = curRow + 1
+    Next i
+End Sub

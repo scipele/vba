@@ -33,11 +33,11 @@
 | `Local Variable Names                                `| `snake_case           `|`current_count       `|
 | `Arrays                                              `| `pluralcamelCase      `|`orderNumbers        `|
 | `Constants                                           `| `UPPER_SNAKE_CASE     `|`ACCELERATION_GRAVITY`|
-| `Labels                                              `| `prefixedPascalCase   `|`Lbl_ReportNoScore    `|
+| `Labels                                              `| `prefixedPascalCase   `|`Lbl_ReportNoScore   `|
 | `Error Handlers                                      `| `hyphenated Pascal    `|`Err_CalcTotals      `|
 | `Class Naming, Use a Noun for Name                   `| `PascalCase           `|`DataExporter        `|
 | `Class Methods                                       `| `PascalCase           `|`CurrentTime         `|
-| `Class Private Members                               `| `camelCase            `|`_internalData       `|
+| `Class Private Members / Member Variables            `| `m_camelCase          `|`m_internalData      `|
 | `Class Properties                                    `| `PascalCase           `|`TotalAmount         `|
 | `Enums -> Name Them with camelCase                   `| `camelCase            `|`costType            `|
 | `Enum Elements -> Prefix Them with Short Name        `| `prefixCamelCase      `|`ctDirectCost        `|
