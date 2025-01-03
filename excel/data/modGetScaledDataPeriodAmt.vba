@@ -53,7 +53,7 @@ Public Function GetScaledDataPeriodAmt(ByRef origAmts As Range, _
     s1 = (scaledPeriod) / scaledPeriodCount
     orig_period_count = UBound(origDataAry) - LBound(origDataAry) + 1
     
-    ' Find items with overlapping range
+    ' Save the index of the lower and upper bound of overlapped items
     Dim lower_bnd_orig As Long, upper_bnd_orig As Long
     lower_bnd_orig = Int(s0 * orig_period_count) + 1
     upper_bnd_orig = Int(s1 * orig_period_count) + 1
@@ -69,7 +69,7 @@ Public Function GetScaledDataPeriodAmt(ByRef origAmts As Range, _
     Dim sum_amt As Double
     sum_amt = 0
     
-    ' now loop from the lower to upper bound computed above
+    ' Loop from the lower to upper bound computed above
     For indx = lower_bnd_orig To upper_bnd_orig
         x0 = (indx - 1) / orig_period_count
         x1 = (indx) / orig_period_count
