@@ -107,13 +107,13 @@ Public Function solveImpactEquation(ByVal mb As Double, _
     Dim ball_angle2 As Double
     ball_angle2 = ballAngle1 - (impactAngle - degree(Atn(vby2 / vbx2)))
     
-    Debug.Print "vbx2....... = ", vbx2
-    Debug.Print "vby2....... = ", vby2
-    Debug.Print "vpx2....... = ", vpx2
-    Debug.Print "vpy2....... = ", vpy2
-    Debug.Print "vb2........ = ", vb2
-    Debug.Print "vp2........ = ", vp2
-    Debug.Print "ball_angle2 = ", ball_angle2
+    'Debug.Print "vbx2....... = ", vbx2
+    'Debug.Print "vby2....... = ", vby2
+    'Debug.Print "vpx2....... = ", vpx2
+    'Debug.Print "vpy2....... = ", vpy2
+    'Debug.Print "vb2........ = ", vb2
+    'Debug.Print "vp2........ = ", vp2
+    'Debug.Print "ball_angle2 = ", ball_angle2
     
     Select Case returnTypeParam
         Case rtVb2
@@ -210,30 +210,24 @@ Public Function getAimBoardAtArrows(ByVal rt_foot_board As Double, _
     aim_y_at_arrows_in = nom_16_y + g
     getAimBoardAtArrows = aim_y_at_arrows_in * 39 / 41.5 + 0.5
 
-    Debug.Print "rt_foot_board........ = ", rt_foot_board
-    Debug.Print "start_shot_board..... = ", start_shot_board
-    
-    Debug.Print "target_x............. = ", target_x
-    Debug.Print "target_y............. = ", target_y
-    Debug.Print "start_line_x_in...... = ", start_line_x_in
-
-    Debug.Print "start_y_in........... = ", start_y_in
-    Debug.Print "target_x_delta....... = ", target_x_delta
-    Debug.Print "target_y_delta....... = ", target_y_delta
-    Debug.Print "nom_16_y............. = ", nom_16_y
-    Debug.Print "target_line_angle_deg = ", target_line_angle_deg
-    
-    Debug.Print "angC................. = ", angC
-    Debug.Print "angG................. = ", angG
-    
-    Debug.Print "b.................... = ", b
-    Debug.Print "c.................... = ", c
-    Debug.Print "g.................... = ", g
-    
-    Debug.Print "aim_y_at_arrows_in... = ", aim_y_at_arrows_in
-    Debug.Print "getAimBoardAtArrows.. = ", getAimBoardAtArrows
-    Debug.Print
-
+    'Debug.Print "rt_foot_board........ = ", rt_foot_board
+    'Debug.Print "start_shot_board..... = ", start_shot_board
+    'Debug.Print "target_x............. = ", target_x
+    'Debug.Print "target_y............. = ", target_y
+    'Debug.Print "start_line_x_in...... = ", start_line_x_in
+    'Debug.Print "start_y_in........... = ", start_y_in
+    'Debug.Print "target_x_delta....... = ", target_x_delta
+    'Debug.Print "target_y_delta....... = ", target_y_delta
+    'Debug.Print "nom_16_y............. = ", nom_16_y
+    'Debug.Print "target_line_angle_deg = ", target_line_angle_deg
+    'Debug.Print "angC................. = ", angC
+    'Debug.Print "angG................. = ", angG
+    'Debug.Print "b.................... = ", b
+    'Debug.Print "c.................... = ", c
+    'Debug.Print "g.................... = ", g
+    'Debug.Print "aim_y_at_arrows_in... = ", aim_y_at_arrows_in
+    'Debug.Print "getAimBoardAtArrows.. = ", getAimBoardAtArrows
+    'Debug.Print
 End Function
 
 
