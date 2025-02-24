@@ -169,11 +169,6 @@ Private Sub SaveTestResultsToCSV()
     Dim selected_answers As String
     Dim correct_answers As String
     
-    For i = 1 To m_numQuestions
-        delimeter = IIf(i = m_numQuestions, "", ",")
-        selected_answers = selected_answers & m_qd(i).SelectedAnswer & delimeter
-        correct_answers = correct_answers & m_qd(i).CorrectAnswer & delimeter
-    Next i
     
     'Indicate answers for record purposes
     
@@ -184,11 +179,45 @@ Private Sub SaveTestResultsToCSV()
                             m_ad.GetSelectedTestName(m_ad.SelectedTestIndx + 1) & vbCr & _
                         "Test Score: " & _
                             m_ad.TestScore & vbCr & _
-                        "Selected_Answers_Numeric: " & _
-                            selected_answers & vbCr & _
-                        "Correct_Answers_Numeric : " & _
-                            correct_answers
-    
+                        "+---------+----------+------------------------------------------------------------------------------------------------------------|" & vbCr & _
+                        "| Correct | Selected | Questions                                                                                                  |" & vbCr & _
+                        "| Answer  | Answer   |    Answers                                                                                                 |"
+
+
+    ' dim variables use in the loops below
+    Dim suffix As String
+    Dim j As Integer
+    Dim is_correct_x As String
+    Dim is_selected_x As String
+    Dim current_answer_ascii_letter As String
+    Dim pad_end As String
+        
+    ' Print Questions to the results file
+    For i = 1 To m_numQuestions
+        suffix = IIf(i < 10, ".  ", ". ")
+        Print #fileNumber, "+---------+----------+------------------------------------------------------------------------------------------------------------|" & vbCr & _
+                            "|         |          | " & i & suffix & m_qd(i).QuestionText & Space(103 - Len(m_qd(i).QuestionText)) & "|"
+        
+        'Print the Answers and notations for correct and selected answers
+        For j = 1 To 4
+            is_selected_x = IIf(j = m_qd(i).SelectedAnswer, "X", " ")
+            is_correct_x = IIf(j = m_qd(i).CorrectAnswer, "X", " ")
+            current_answer_ascii_letter = Chr(96 + j)
+            
+            If (m_qd(i).PotentialAnswer(j) <> "") Then
+                Print #fileNumber, "|   " & _
+                    is_correct_x & _
+                    "     |     " & _
+                    is_selected_x & _
+                    "    |    " & _
+                    current_answer_ascii_letter & _
+                    ". " & m_qd(i).PotentialAnswer(j) & _
+                    Space(101 - Len(m_qd(i).PotentialAnswer(j))) & "|"
+            End If
+        Next j
+    Next i
+    Print #fileNumber, "+---------+----------+------------------------------------------------------------------------------------------------------------|"
+
     ' Close the file
     Close fileNumber
 End Sub

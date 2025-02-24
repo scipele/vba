@@ -6,7 +6,7 @@
 '| Inputs       | User input with combo buttons                               |
 '| Outputs      | selected test answers written to 'ClsTestData' members      |
 '| Dependencies | none                                                        |
-'| By Name,Date | T.Sciple, 12/26/2024                                        |
+'| By Name,Date | T.Sciple, 2/23/2025 v05 (shuffled questions)                |
 
 
 Option Explicit
@@ -14,6 +14,8 @@ Private m_ad As ClsApplicantData
 Private m_td As ClsTestData
 Dim currentQuestion As ClsQuestionData
 Private questionIndx As Integer
+Dim shuffledIndxAry As Variant
+
 
 
 Public Sub InitializeTestDataForm()
@@ -32,6 +34,9 @@ Public Sub InitializeTestDataForm()
     m_td.ReadTableData m_ad.SelectedTestIndx
     questionIndx = 1
     
+    Debug.Print m_td.NumQuestions
+    shuffledIndxAry = getShuffledAry(m_td.NumQuestions)
+    
     'Sub to set the label values and visibility
     DisplayQuestionAndPotentialAnswers
     
@@ -47,7 +52,10 @@ Private Sub DisplayQuestionAndPotentialAnswers()
         ' Set the current question object based on the current index.
         ' Note that the new keyword is not used because the private member
         ' data is already set with the method 'm_td.ReadTableData'
-        Set currentQuestion = m_td.GetQuestionData(questionIndx)
+        Dim current_shuffled_question_id As Integer
+        current_shuffled_question_id = shuffledIndxAry(questionIndx)
+        
+        Set currentQuestion = m_td.GetQuestionData(current_shuffled_question_id)
         
         'Update the label captions
         lblQuestion.Caption = currentQuestion.QuestionText
@@ -168,3 +176,33 @@ Private Sub UpdateSelectedAnswer(SelectedAnswer As Integer)
                 "Press Submit Completed Answers")
     End If
 End Sub
+
+
+Private Function getShuffledAry(ByVal max_indx As Integer) As Variant
+
+    ' Generate a sequential array from 0 to max_indx
+    Dim tmp_ary As Variant
+    ReDim tmp_ary(1 To max_indx)
+    Dim i As Integer
+
+    For i = 1 To max_indx
+        tmp_ary(i) = i
+    Next i
+
+    ' Fisher-Yates Shuffle Algorithm
+    Randomize
+    Dim j As Integer
+    Dim temp As Integer
+    
+    ' Loop backward from Last element to second item
+    For i = max_indx - 1 To 2 Step -1 ' dont need to run for last element
+        j = Int(i * Rnd) + 1            ' Generate random index from 1 to i
+        
+        ' Swap the random elements
+        temp = tmp_ary(i)
+        tmp_ary(i) = tmp_ary(j)
+        tmp_ary(j) = temp
+    Next i
+
+    getShuffledAry = tmp_ary
+End Function
