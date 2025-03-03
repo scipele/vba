@@ -17,7 +17,6 @@ Private questionIndx As Integer
 Dim shuffledIndxAry As Variant
 
 
-
 Public Sub InitializeTestDataForm()
     ' Initialize the applicant object
     Set m_ad = modMain.ad
@@ -34,7 +33,6 @@ Public Sub InitializeTestDataForm()
     m_td.ReadTableData m_ad.SelectedTestIndx
     questionIndx = 1
     
-    Debug.Print m_td.NumQuestions
     shuffledIndxAry = getShuffledAry(m_td.NumQuestions)
     
     'Sub to set the label values and visibility
