@@ -11,13 +11,18 @@ Option Explicit
 
 
 Public Function get_arrow_and_num(ByRef mo_rng As Range, _
-base_qty As Double) As Variant
+                                  ByVal base_qty As Double) _
+                                  As Variant
    
     ' Loop thru each cell in the 'mo_rng' month quantity range until blank
     Dim mo As Variant
     Dim cur_mo_qty As Double
+    Dim month_data As Long
     For Each mo In mo_rng
-        If mo <> "" Then cur_mo_qty = mo.Value
+        If mo <> "" Then
+            cur_mo_qty = mo.Value
+            month_data = month_data + 1
+        End If
     Next mo
     
     ' Compute the fractional change of the latest quantity verses the base qty
@@ -32,7 +37,7 @@ base_qty As Double) As Variant
     ' Call the private function below to get the string range for
     ' the cells that will be colored either black or colored
     Dim rng_str As Variant
-    rng_str = GetColorRangeStrings(mo_rng)
+    rng_str = GetColorRangeStrings(mo_rng, month_data)
     
     ' Set const long integer values for the colors
     ' note that RGB decimal equivalents are hard coded
@@ -68,7 +73,9 @@ base_qty As Double) As Variant
 End Function
 
 
-Private Function GetColorRangeStrings(ByVal mo_rng As Range) As Variant
+Private Function GetColorRangeStrings(ByVal mo_rng As Range, _
+                                      ByVal month_data As Long) _
+                                      As Variant
 
     ' Determine the row number bsaed on the range passed which is used to
     ' change the font color
@@ -78,8 +85,8 @@ Private Function GetColorRangeStrings(ByVal mo_rng As Range) As Variant
     'get range to highlight in colors, and previous months to make black
     Dim colm_no(0 To 2) As Long
     colm_no(0) = mo_rng.Column
-    colm_no(1) = mo_rng.Column + mo_rng.Count - 1
-    colm_no(2) = colm_no(1) + 1
+    colm_no(1) = mo_rng.Column + month_data - 1
+    colm_no(2) = mo_rng.Column + mo_rng.Count - 1
     
     ' convert the column numbers above to letters using the cellls.address
     Dim colm_ltr(0 To 2) As String
