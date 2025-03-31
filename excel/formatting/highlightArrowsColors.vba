@@ -7,7 +7,7 @@ Option Explicit
 '| Inputs       | two ranges from excel sheet                                 |
 '| Outputs      | symbol, font color of cells                                 |
 '| Dependencies | none                                                        |
-'| By Name,Date | T.Sciple, 3/27/2025                                         |
+'| By Name,Date | T.Sciple, 3/31/2025                                         |
 
 
 Public Function get_arrow_and_num(ByRef mo_rng As Range, _
@@ -84,9 +84,9 @@ Private Function GetColorRangeStrings(ByVal mo_rng As Range, _
     
     'get range to highlight in colors, and previous months to make black
     Dim colm_no(0 To 2) As Long
-    colm_no(0) = mo_rng.Column
+    colm_no(0) = mo_rng.Column  'start of the months range
     colm_no(1) = mo_rng.Column + month_data - 1
-    colm_no(2) = mo_rng.Column + mo_rng.Count - 1
+    colm_no(2) = mo_rng.Column + mo_rng.Count
     
     ' convert the column numbers above to letters using the cellls.address
     Dim colm_ltr(0 To 2) As String
