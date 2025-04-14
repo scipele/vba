@@ -7,7 +7,7 @@ Option Explicit
 '| Inputs       | two ranges from excel sheet                                 |
 '| Outputs      | symbol, font color of cells                                 |
 '| Dependencies | none                                                        |
-'| By Name,Date | T.Sciple, 3/31/2025                                         |
+'| By Name,Date | T.Sciple, 4/14/2025                                         |
 
 
 Public Function get_arrow_and_num(ByRef mo_rng As Range, _
@@ -41,7 +41,7 @@ Public Function get_arrow_and_num(ByRef mo_rng As Range, _
     
     ' Set const long integer values for the colors
     ' note that RGB decimal equivalents are hard coded
-    ' Long Color = Red + (Green×256) + (Blue×65536))
+    ' Long Color = Red + (Green×256) + (Blue×65536))
     Const RED_COLOR As Long = 255       ' Long equivalent of RGB(255, 0, 0)
     Const GREEN_COLOR As Long = 5287936 ' Long equivalent of  RGB(0, 176, 80)
     Const BLACK_COLOR As Long = 0       ' Long equivalent of  RGB(0, 0, 0)
@@ -49,7 +49,7 @@ Public Function get_arrow_and_num(ByRef mo_rng As Range, _
     'set other older months to black color
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Client Summary") ' Change to your sheet name
-    ws.Range(rng_str(0)).Font.color = BLACK_COLOR
+    ws.Range(rng_str(0)).Font.Color = BLACK_COLOR
         
     'set uparrow, downarrow, or none
     Dim symb As String
@@ -57,15 +57,15 @@ Public Function get_arrow_and_num(ByRef mo_rng As Range, _
     Select Case True
         Case frac_qty_chg > 0
             symb = ChrW(&H2191)
-            ws.Range(rng_str(1)).Font.color = RED_COLOR
+            ws.Range(rng_str(1)).Font.Color = RED_COLOR
             
         Case frac_qty_chg < 0
             symb = ChrW(&H2193)
-            ws.Range(rng_str(1)).Font.color = GREEN_COLOR
+            ws.Range(rng_str(1)).Font.Color = GREEN_COLOR
         
         Case frac_qty_chg = 0
             symb = ""
-            ws.Range(rng_str(1)).Font.color = BLACK_COLOR
+            ws.Range(rng_str(1)).Font.Color = BLACK_COLOR
     End Select
     
     get_arrow_and_num = symb & Format(frac_qty_chg * 100, "0") & "%"
@@ -86,6 +86,9 @@ Private Function GetColorRangeStrings(ByVal mo_rng As Range, _
     Dim colm_no(0 To 2) As Long
     colm_no(0) = mo_rng.Column  'start of the months range
     colm_no(1) = mo_rng.Column + month_data - 1
+    If colm_no(1) < colm_no(0) Then
+        colm_no(1) = colm_no(0)
+    End If
     colm_no(2) = mo_rng.Column + mo_rng.Count
     
     ' convert the column numbers above to letters using the cellls.address
