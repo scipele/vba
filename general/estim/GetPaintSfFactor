@@ -1,0 +1,128 @@
+Option Explicit
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | PaintSfFactors.vba                                          |
+'| EntryPoint   | Public Function                                             |
+'| Purpose      | Compute Square Footage of Pipe/Fittings for Paint Estimating|
+'| Inputs       | nom_dia, component_types (see below)                        |
+'|              |     pip , vlvFlg, vlvSb, vlvBw, el90, el45, tee, flg, shoe  |
+'| Outputs      | paint sf factor                                             |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 8/2/2025                                          |
+
+' Defined constants at module level so they are available for subsequent calls from dbase or spreadsheet
+Public Const PI_D As Double = 3.14159265358979
+
+' Define constants used with curve fit of 90 deg elbow sf factors
+Const A1 As Double = 0.050809
+Const B1 As Double = 0.039336
+Const C1 As Double = -0.661307
+
+' Define constants used with curve fit of tee sf factors
+Const A2 As Double = 0.032944
+Const B2 As Double = (-0.040742)
+Const C2 As Double = 0.337766
+
+' Define constants used with curve fit of 45d elbow factors
+Const A3 As Double = 0.025436
+Const B3 As Double = 0.016741
+Const C3 As Double = -0.267717
+
+' Define constants used with flanges
+Const A4 As Double = 0.006326
+Const B4 As Double = 0.168437
+Const C4 As Double = -0.202303
+
+
+Public Function GetPaintSfFactor(ByVal nom_dia As Double, _
+                           ByVal comp_pip_vlvFlg_vlvSb_vlvBw_el90_el45_tee_flg_shoe As String) _
+                           As Variant
+
+    Dim pipe_sf As Double
+    Dim od As Double
+    od = GetPipeOD(nom_dia)
+    
+    If comp_pip_vlvFlg_vlvSb_vlvBw_el90_el45_tee_flg_shoe = "shoe" Then
+        comp_pip_vlvFlg_vlvSb_vlvBw_el90_el45_tee_flg_shoe = "pip"
+    End If
+    
+    Select Case LCase(comp_pip_vlvFlg_vlvSb_vlvBw_el90_el45_tee_flg_shoe)
+    
+        Case "pip"
+            pipe_sf = IIf(nom_dia < 4, 1, PI_D * od / 12)
+            
+        Case "vlvflg"
+            pipe_sf = 8 * IIf(nom_dia < 4, 1, PI_D * (od / 12))
+            
+        Case "vlvbw"
+            pipe_sf = 5 * IIf(nom_dia < 4, 1, PI_D * (od / 12))
+            
+        Case "vlvthrd"
+            pipe_sf = IIf(nom_dia < 3, 4, 0)
+        
+        Case "el90"
+            pipe_sf = IIf(nom_dia < 6, 1, Get_Polynomial_Equation_Result(od, A1, B1, C1))
+        
+        Case "tee"
+            pipe_sf = IIf(nom_dia < 6, 1, Get_Polynomial_Equation_Result(od, A2, B2, C2))
+        
+        Case "el45"
+            pipe_sf = IIf(nom_dia < 6, 1, Get_Polynomial_Equation_Result(od, A3, B3, C3))
+        
+        Case "flg"
+            pipe_sf = IIf(nom_dia < 6, 1, Get_Polynomial_Equation_Result(od, A4, B4, C4))
+        
+        Case Else
+            pipe_sf = 0     'if not found
+
+    End Select
+    
+    GetPaintSfFactor = IIf((pipe_sf - 0) < 0.0001, "", Int(-100 * pipe_sf) / -100)
+
+End Function
+           
+
+Private Function Get_Polynomial_Equation_Result(ByVal x As Double, _
+                                                ByVal a As Double, _
+                                                ByVal b As Double, _
+                                                ByVal c As Double) _
+                                                As Double
+                                                
+    Get_Polynomial_Equation_Result = a * x ^ 2 + b * x + c
+                                                
+End Function
+
+
+Public Function GetPipeOD(NPS As Double) As Double
+    ' Static collection to store NPS-to-OD mappings
+    Static PipeData As Collection
+    Dim NPSArray As Variant
+    Dim ODArray As Variant
+    Dim i As Integer
+    
+    ' Initialize collection if not already done
+    If PipeData Is Nothing Then
+        Set PipeData = New Collection
+        NPSArray = Array(0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9, 10, 11, 12)
+        ODArray = Array(0.405, 0.54, 0.675, 0.84, 1.05, 1.315, 1.66, 1.9, 2.375, 2.875, 3.5, 4, 4.5, 5, 5.563, 6.625, 7.625, 8.625, 9.625, 10.75, 11.75, 12.75)
+        
+        ' Populate collection with NPS as key (string for precise matching) and OD as value
+        For i = LBound(NPSArray) To UBound(NPSArray)
+            PipeData.Add ODArray(i), CStr(NPSArray(i))
+        Next i
+    End If
+    
+    ' Check if NPS is greater than 12 then the OD is the same as the nps
+    If NPS > 12 Then
+        GetPipeOD = NPS
+        Exit Function
+    End If
+    
+    ' Retrieve OD from collection
+    On Error Resume Next
+    GetPipeOD = PipeData(CStr(NPS))
+    If err.Number <> 0 Then
+        GetPipeOD = 0 ' Return 0 if NPS not found
+    End If
+    On Error GoTo 0
+End Function
