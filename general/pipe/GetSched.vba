@@ -2,6 +2,7 @@ Public Function GetSched(orig_sch As String, _
                          nps As Double) _
                          As String
     
+    
     If IsNull(orig_sch) Or orig_sch = "" Then
         GetSched = ""
         Exit Function
