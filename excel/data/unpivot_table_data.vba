@@ -112,9 +112,6 @@ Private Sub output_ary_to_sht( _
 End Sub
 
 
-'      If fieldMap.Exists("row") Then .row = tblRow.Range(1, fieldMap("row")).Value
-
-
 Private Sub set_colm_format( _
     ByVal sht_name, _
     ByVal start_colm_num As Integer, _
