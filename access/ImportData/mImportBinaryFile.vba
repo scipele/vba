@@ -4,14 +4,13 @@ Option Compare Database
 '| Item         | Documentation Notes                                         |
 '|--------------|-------------------------------------------------------------|
 '| Filename     | mImportBinaryToTable.vba                                    |
-'| EntryPoint   | Sub ImportBinaryToTable                                     |
+'| EntryPoint   | Sub ImportBinaryData                                        |
 '| Purpose      | Import data from a binary file to an MS Access table        |
 '| Inputs       | File path and table name                                    |
 '| Outputs      | New table in MS Access database                             |
 '| Dependencies | DAO library (Microsoft Office X.0 Access Database Engine)   |
 '| By Name,Date | T.Sciple, 9/6/2025
 
-Dim start_time As Double
 
 ' Enum for data types, matching the Excel VBA code
 Private Enum dtDataType
@@ -26,6 +25,7 @@ Private Enum dtDataType
     enCurrency = 8     ' Currency (fixed-point number)
 End Enum
 
+
 ' UDT to store import data, matching the Excel VBA code
 Private Type GeneralData
     tableName As String           ' Table name
@@ -34,17 +34,15 @@ Private Type GeneralData
     DataTypeCode() As Variant
     NumExportFields As Integer
     NumExportRows As Long         ' Number of rows to import
+    start_time As Double
 End Type
 
 
-' Example usage with FileDialog
+' Entry Point
 Public Sub ImportBinaryData()
-
-    Dim filePath As String
-    
-    ' Set table name
-    Dim tableName As String
-    tableName = "t_ImportedData"
+    ' Set the name of the table
+    Dim gd As GeneralData
+    gd.tableName = "t_ImportedData"
     
     ' Create FileDialog object
     Dim fileDialog As Object
@@ -52,18 +50,18 @@ Public Sub ImportBinaryData()
     
     With fileDialog
         .Title = "Select Binary File to Import"
+        .InitialFileName = "c:\t\"
         .Filters.Add "Binary Files", "*.bin"
         .AllowMultiSelect = False
         If .Show = True Then
-            filePath = .SelectedItems(1)
-            start_time = Timer
-            Call ImportBinaryFileToTable(filePath, tableName)
+            gd.FilePathAndName = .SelectedItems(1)
+            gd.start_time = Timer
+            Call ImportBinaryFileToTable(gd)
         End If
     End With
     
     ' Refresh navigation pane to ensure table is visible
     Application.RefreshDatabaseWindow
-
     
     Set fileDialog = Nothing
 End Sub
@@ -72,10 +70,6 @@ End Sub
 ' Function to create a table in Access based on binary file metadata
 Private Sub CreateImportTable(gd As GeneralData)
     Dim db As DAO.Database
-    Dim tbl As DAO.TableDef
-    Dim fld As DAO.Field
-    Dim i As Integer
-    
     Set db = CurrentDb
     
     ' Check if table exists; if so, delete it (optional: could prompt user)
@@ -84,16 +78,19 @@ Private Sub CreateImportTable(gd As GeneralData)
     On Error GoTo 0
     
     ' Create new table
+    Dim tbl As DAO.TableDef
     Set tbl = db.CreateTableDef(gd.tableName)
     
     ' Add fields based on FieldNames and DataTypeCode
+    Dim fld As DAO.Field
     With tbl
         ' Add ID field (AutoNumber, Primary Key)
-        Set fld = .CreateField("ID", dbLong)
+        Set fld = .CreateField("import_id", dbLong)
         fld.Attributes = dbAutoIncrField
         .Fields.Append fld
         
         ' Add data fields
+        Dim i As Integer
         For i = 0 To gd.NumExportFields - 1
             Dim fieldName As String
             Dim fieldType As Integer
@@ -135,11 +132,9 @@ Private Sub CreateImportTable(gd As GeneralData)
         Next i
     End With
     
-    
     ' Add table to database
     db.TableDefs.Append tbl
     Debug.Print "Table '" & gd.tableName & "' created."
-    
     
     Set fld = Nothing
     Set tbl = Nothing
@@ -148,12 +143,7 @@ End Sub
 
 
 ' Function to import binary file into Access table
-Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
-    Dim gd As GeneralData
-    Dim db As DAO.Database
-    Dim rst As DAO.Recordset
-    Dim f As Integer
-    Dim i As Long, j As Integer
+Private Sub ImportBinaryFileToTable(ByRef gd As GeneralData)
     Dim lenH As Long
     Dim bHeader() As Byte
     Dim bType As Byte
@@ -169,11 +159,8 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     
     On Error GoTo ErrorHandler
     
-    ' Initialize GeneralData
-    gd.FilePathAndName = filePath
-    gd.tableName = tableName
-    
     ' Open binary file
+    Dim f As Integer
     f = FreeFile
     Open gd.FilePathAndName For Binary Access Read As #f
     
@@ -183,6 +170,7 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     
     ' Read field names
     ReDim gd.FieldNames(0 To gd.NumExportFields - 1)
+    Dim j As Integer
     For j = 0 To gd.NumExportFields - 1
         Get #f, , lenH
         If lenH > 0 Then
@@ -205,12 +193,14 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     Call CreateImportTable(gd)
     
     ' Open recordset for inserting data
+    Dim db As DAO.Database
     Set db = CurrentDb
+    Dim rst As DAO.Recordset
     Set rst = db.OpenRecordset(gd.tableName, dbOpenDynaset)
     
     ' Read and insert data
+    Dim i As Long
     For i = 1 To gd.NumExportRows
-        
         rst.AddNew
         For j = 0 To gd.NumExportFields - 1
             Select Case gd.DataTypeCode(j)
@@ -226,12 +216,12 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
                     End If
                 Case enDouble
                     Get #f, , dblValue
-                    If dblValue <> 0# Then
+                    If dblValue <> -9999 Then
                         rst.Fields(gd.FieldNames(j)).Value = dblValue
                     End If
                 Case enLongInt
                     Get #f, , lngValue
-                    If lngValue <> 0 Then
+                    If lngValue <> -9999 Then
                         rst.Fields(gd.FieldNames(j)).Value = lngValue
                     End If
                 Case enByte
@@ -241,7 +231,7 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
                     End If
                 Case enInteger
                     Get #f, , intValue
-                    If intValue <> 0 Then
+                    If intValue <> -9999 Then
                         rst.Fields(gd.FieldNames(j)).Value = intValue
                     End If
                 Case enBoolean
@@ -266,11 +256,9 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     rst.Close
     
     Dim elapsed_time As Double
-    elapsed_time = Round(Timer - start_time, 2)
+    elapsed_time = Round(Timer - gd.start_time, 2)
     
     MsgBox "Import completed from " & gd.FilePathAndName & " to table '" & gd.tableName & "' " & elapsed_time & " seconds."
-    
-    
     
     ' Clean up
     Set rst = Nothing

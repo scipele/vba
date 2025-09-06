@@ -185,7 +185,7 @@ Public Sub ExportTableToBinary()
             chunks(j) = colRanges(j).Rows(startRow & ":" & endRow).value
         Next j
         
-        ' Write each row in the chunk
+        ' Write each row in the chunk using -9999 as a place holder for empty value
         For r = 1 To chunkRows
             For j = 1 To gd.NumExportFields
                 Select Case gd.DataTypeCode(j - 1)
@@ -206,14 +206,14 @@ Public Sub ExportTableToBinary()
                         If len_ > 0 Then Put #f, , b
                     Case enDouble
                         If IsEmpty(chunks(j)(r, 1)) Or Not IsNumeric(chunks(j)(r, 1)) Then
-                            dblValue = 0#
+                            dblValue = -9999
                         Else
                             dblValue = CDbl(chunks(j)(r, 1))
                         End If
                         Put #f, , dblValue
                     Case enLongInt
                         If IsEmpty(chunks(j)(r, 1)) Or Not IsNumeric(chunks(j)(r, 1)) Then
-                            lngValue = 0
+                            lngValue = -9999
                         Else
                             lngValue = CLng(chunks(j)(r, 1))
                         End If
@@ -227,7 +227,7 @@ Public Sub ExportTableToBinary()
                         Put #f, , bytValue
                     Case enInteger
                         If IsEmpty(chunks(j)(r, 1)) Or Not IsNumeric(chunks(j)(r, 1)) Then
-                            intValue = 0
+                            intValue = -9999
                         Else
                             intValue = CInt(chunks(j)(r, 1))
                         End If
