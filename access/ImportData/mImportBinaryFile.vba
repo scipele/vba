@@ -141,8 +141,9 @@ Private Sub CreateImportTable(gd As GeneralData)
     Set db = Nothing
 End Sub
 
+
 ' Function to import binary file into Access table
-Public Sub ImportBinaryFileToTable(filePath As String, tableName As String)
+Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     Dim gd As GeneralData
     Dim db As DAO.Database
     Dim rst As DAO.Recordset
