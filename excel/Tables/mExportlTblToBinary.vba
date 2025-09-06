@@ -28,7 +28,7 @@ Option Explicit
 
 
 ' Define an Enum for data types with a "dt" prefix for clarity
-Public Enum dtDataType
+Private Enum dtDataType
     enShortText = 0    ' Short text (e.g., up to 255 characters)
     enLongText = 1     ' Long text (e.g., memo fields or large strings)
     enDouble = 2       ' Double-precision floating-point number
@@ -41,7 +41,7 @@ Public Enum dtDataType
 End Enum
 
 ' UDT to store general export data
-Public Type GeneralData
+Private Type GeneralData
     ShtName As String             ' Worksheet name
     TableName As String           ' Table name
     FilePathAndName As String     ' Output File Path and name
@@ -54,7 +54,11 @@ Public Type GeneralData
 End Type
 
 
-Sub ExportTableToBinary()
+Public Sub ExportTableToBinary()
+    
+    Dim StartTime As Double
+    StartTime = Timer
+    
     Dim gd As GeneralData
     Call GetGeneralData(gd)
 
@@ -120,6 +124,8 @@ Sub ExportTableToBinary()
 
     gd.NumExportRows = data.Rows.Count
 
+    Call CreateSubDirectories(gd.FilePathAndName)
+    
     Dim f As Integer
     f = FreeFile
     Open gd.FilePathAndName For Binary Access Write As #f
@@ -145,7 +151,7 @@ Sub ExportTableToBinary()
     Next j
 
     ' Process data in chunks
-    Dim chunkSize As Long: chunkSize = 10000
+    Dim chunkSize As Long: chunkSize = 5000
     Dim startRow As Long: startRow = 1
     Dim endRow As Long, chunkRows As Long
     
@@ -256,7 +262,11 @@ Sub ExportTableToBinary()
     
     Close #f
     
-    MsgBox "Export completed to " & gd.FilePathAndName
+    'Determine how many seconds code took to run
+    Dim SecondsElapsed As Double
+    SecondsElapsed = Round(Timer - StartTime, 2)
+        
+    MsgBox "Export to " & gd.FilePathAndName & " completed in " & SecondsElapsed & " Seconds"
 End Sub
 
 
@@ -316,4 +326,28 @@ Sub GetGeneralData(ByRef gd As GeneralData)
         End If
         i = i + 1
     Next elem
+End Sub
+
+
+Private Sub CreateSubDirectories(ByVal fileNameAndPath As String)
+    ' Purpose: Check and create subdirectories for the given file path
+    Dim path As String
+    Dim directories() As String
+    Dim currentPath As String
+    Dim i As Integer
+    
+    ' Extract the directory path from dg.FilePathAndName
+    path = Left(fileNameAndPath, InStrRev(fileNameAndPath, "\") - 1)
+    
+    ' Split the path into individual directories
+    directories = Split(path, "\")
+    
+    ' Build and check/create each directory level
+    currentPath = directories(0) ' Start with drive letter (e.g., C:)
+    For i = 1 To UBound(directories)
+        currentPath = currentPath & "\" & directories(i)
+        If Len(Dir(currentPath, vbDirectory)) = 0 Then
+            MkDir currentPath
+        End If
+    Next i
 End Sub

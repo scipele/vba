@@ -11,6 +11,8 @@ Option Compare Database
 '| Dependencies | DAO library (Microsoft Office X.0 Access Database Engine)   |
 '| By Name,Date | T.Sciple, 9/6/2025
 
+Dim start_time As Double
+
 ' Enum for data types, matching the Excel VBA code
 Private Enum dtDataType
     enShortText = 0    ' Short text (e.g., up to 255 characters)
@@ -37,14 +39,15 @@ End Type
 
 ' Example usage with FileDialog
 Public Sub ImportBinaryData()
-    Dim fileDialog As Object
+
     Dim filePath As String
-    Dim tableName As String
     
-    ' Set table name (can be input via form or hardcoded)
+    ' Set table name
+    Dim tableName As String
     tableName = "t_ImportedData"
     
     ' Create FileDialog object
+    Dim fileDialog As Object
     Set fileDialog = Application.fileDialog(3) ' 3 = msoFileDialogFilePicker
     
     With fileDialog
@@ -53,6 +56,7 @@ Public Sub ImportBinaryData()
         .AllowMultiSelect = False
         If .Show = True Then
             filePath = .SelectedItems(1)
+            start_time = Timer
             Call ImportBinaryFileToTable(filePath, tableName)
         End If
     End With
@@ -60,6 +64,7 @@ Public Sub ImportBinaryData()
     ' Refresh navigation pane to ensure table is visible
     Application.RefreshDatabaseWindow
 
+    
     Set fileDialog = Nothing
 End Sub
 
@@ -259,7 +264,13 @@ Private Sub ImportBinaryFileToTable(filePath As String, tableName As String)
     
     Close #f
     rst.Close
-    MsgBox "Import completed from " & gd.FilePathAndName & " to table " & gd.tableName
+    
+    Dim elapsed_time As Double
+    elapsed_time = Round(Timer - start_time, 2)
+    
+    MsgBox "Import completed from " & gd.FilePathAndName & " to table '" & gd.tableName & "' " & elapsed_time & " seconds."
+    
+    
     
     ' Clean up
     Set rst = Nothing
