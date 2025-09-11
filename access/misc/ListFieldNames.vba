@@ -1,16 +1,27 @@
+Option Explicit
+'| Item	        | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | mMiscSubsAndFns.vba                                         |
+'| EntryPoint   | Varies                                                      |
+'| Purpose      | Various functions.                                          |
+'| Inputs       | varies                                                      |
+'| Outputs      | Various                                                     |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 9/11/2025                                         |
+
 
 Sub ListTables()
-	Dim db As DAO.Database
-	Dim tdf As DAO.TableDef
-	Set db = CurrentDb
-	For Each tdf In db.TableDefs
-	    ' ignore system and temporary tables
-	    If Not (tdf.name Like "MSys*" Or tdf.name Like "~*") Then
-	        Debug.Print tdf.name
-	    End If
-	Next
-	Set tdf = Nothing
-	Set db = Nothing
+	  Dim db As DAO.Database
+	  Dim tdf As DAO.TableDef
+	  Set db = CurrentDb
+	  For Each tdf In db.TableDefs
+  	    ' ignore system and temporary tables
+	      If Not (tdf.name Like "MSys*" Or tdf.name Like "~*") Then
+	          Debug.Print tdf.name
+	      End If
+	  Next
+	  Set tdf = Nothing
+	  Set db = Nothing
 End Sub
 
 
