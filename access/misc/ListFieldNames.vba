@@ -20,7 +20,7 @@ Sub ListTableFields()
     Dim fld As DAO.Field
     
     Dim TableName As String
-    TableName = "new"
+    TableName = Inputbox("Enter Table Name:")
     
     ' Open the current database
     Set db = CurrentDb
