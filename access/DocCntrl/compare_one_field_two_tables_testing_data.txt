@@ -1,0 +1,24 @@
+fa
+Cooling of the equipment
+One guy has built one already
+Schneider does have one pipe guy
+What is the pipe material
+Budget Pricing
+Next do engineering
+Pipe material ?
+old item (not in new list)
+Structure design is by us
+Server Racks
+
+
+fb
+Cooling of the equipment
+new item (example)
+Structure design is by us
+Schneider does have one pipe guy
+What is the pipe material
+Budget Pricing
+Next do engineering
+Pipe material ?
+One guy has built one already
+Server Racks
