@@ -1,0 +1,86 @@
+Option Compare Database
+Option Explicit
+'| Item         | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | mcleanup.vba                                                |
+'| EntryPoint   | varies                                                      |
+'| Purpose      | compare_one_field_two_tables                                |
+'| Inputs       | button click                                                |
+'| Outputs      | deleted and restored tables                                 |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 09/22/2025                                        |
+
+
+Sub DeleteAndRecreateTable()
+    On Error GoTo ErrHandler
+    Dim db As DAO.Database
+    Set db = CurrentDb
+    
+    ' Delete the tables if they exists
+    If TableExists("ta") Then DoCmd.DeleteObject acTable, "ta"
+    If TableExists("tb") Then DoCmd.DeleteObject acTable, "tb"
+    
+    ' Create the table with specified fields
+    db.Execute "CREATE TABLE ta (id_a AUTOINCREMENT PRIMARY KEY, fa VARCHAR(255));"
+    db.Execute "CREATE TABLE tb (id_b AUTOINCREMENT PRIMARY KEY, fb VARCHAR(255));"
+    
+    MsgBox "Table 'ta' and 'tb' have been deleted and recreated successfully.", vbInformation
+    Exit Sub
+    
+ErrHandler:
+    MsgBox "An error occurred: " & Err.Description, vbCritical
+End Sub
+
+
+Function TableExists(TableName As String) As Boolean
+    Dim tdf As DAO.TableDef
+    For Each tdf In CurrentDb.TableDefs
+        If tdf.Name = TableName Then
+            TableExists = True
+            Exit Function
+        End If
+    Next tdf
+    TableExists = False
+End Function
+
+
+
+
+'********  FORM CODE - Form_fa_instructions ******
+Option Compare Database
+
+Private Sub cmdDeleteOldData_Click()
+    cleanup.DeleteAndRecreateTable
+End Sub
+
+
+Private Sub cmdOpenTablesForm_Click()
+    DoCmd.Close acForm, "fa_instructions"
+    DoCmd.OpenForm "fb_both_tables"
+End Sub
+
+
+
+
+'********  FORM CODE - Form_fb_both_table ******
+Option Compare Database
+
+Private Sub cmdDeleteOldData_Click()
+    cleanup.DeleteAndRecreateTable
+End Sub
+
+
+Private Sub cmdOpenComparison_Click()
+    DoCmd.OpenQuery "qa_compare_w_ids", acViewNormal
+End Sub
+
+
+Private Sub cmdReturnMainMenu_Click()
+    DoCmd.Close acForm, "fb_both_tables"
+    DoCmd.OpenForm "fa_instructions"
+End Sub
+
+
+Private Sub Command9_Click()
+    DoCmd.OpenQuery "qb_compare_wo_ids", acViewNormal
+End Sub
