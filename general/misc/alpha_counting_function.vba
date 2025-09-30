@@ -16,7 +16,7 @@ sub test_example
 
     'Now start with two letters
     debug.print alpha_ounting_function(i)
-    for i = 27 to 100
+    for i = 27 to 200
         debug.print i, alpha_counting_function(i)
     next i
 end sub
