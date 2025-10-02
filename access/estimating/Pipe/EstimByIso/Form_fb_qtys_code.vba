@@ -1,4 +1,3 @@
-Option Explicit
 '| Item         | Documentation Notes                                         |
 '|--------------|-------------------------------------------------------------|
 '| Filename     | Form_fb_qtys_code.vba                                       |
@@ -9,6 +8,7 @@ Option Explicit
 '| Dependencies | none                                                        |
 '| By Name,Date | T.Sciple, 9/10/2025                                         |
 
+Option Explicit
 Option Compare Database
 
 Private Sub spool_qty_AfterUpdate()
