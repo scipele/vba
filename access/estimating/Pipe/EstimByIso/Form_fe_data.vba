@@ -32,64 +32,77 @@ End Sub
 
 
 Private Sub cmdCopyPrev_Click()
-    'Get old id from user
-    Dim old_id As Long
-    old_id = InputBox("enter id number to copy ")
-    
-    'set all textbox values from the user input id
-    Me.matl_id = Nz(DLookup("matl_id", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.sch_id = Nz(DLookup("sch_id", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.flg_rtg_id = Nz(DLookup("flg_rtg_id", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.sb_rtg_id = Nz(DLookup("sb_rtg_id", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.rt_pct = Nz(DLookup("rt_pct", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.instr_mh = Nz(DLookup("instr_mh", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.sp_mh = Nz(DLookup("sp_mh", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.tie_mh = Nz(DLookup("tie_mh", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.supt_qty = Nz(DLookup("supt_qty", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.supt_mh = Nz(DLookup("supt_mh", "ta_data", "est_id = " & old_id), "Not Found")
-    Me.grout_mh = Nz(DLookup("grout_mh", "ta_data", "est_id = " & old_id), "Not Found")
-
     On Error GoTo ErrHandler
     
+    Dim old_id As Long
+    Dim new_est_id As Long
     Dim db As DAO.Database
     Dim str_sql As String
-    Dim new_est_id As Long
     
-    ' Get the current est_id from the main form
-    new_est_id = Me.est_id ' Adjust control name if different
+    ' 1. Get the ID to copy FROM
+    old_id = InputBox("Enter estimate ID number to copy from:", "Copy Previous", "")
+    If old_id = 0 Then Exit Sub
     
-    ' Verify records exist for the old est_id
-    If DCount("*", "tb_qtys", "est_id = " & old_id) = 0 Then
+    ' 2. Make sure we're on a saved main record and capture its est_id
+    If Me.Dirty Then Me.Dirty = False          ' Save any pending changes
+    If Me.NewRecord Then
+        MsgBox "You must save the main estimate first before copying quantities.", vbExclamation
         Exit Sub
     End If
     
-    ' Build the INSERT INTO query
-    ' Insert fields: all except qty_id
-    ' Select: new est_id literal, then the rest from old records
-    str_sql = "INSERT INTO tb_qtys (est_id, size_id, spool_qty, str_run_qty, butt_wld_qty, " & _
-             "sw_qty, bu_qty, vlv_hnd_qty, make_on_qty, mo_bckwld_qty, cut_bev_qty, " & _
-             "spool_mhs, str_run_mhs, butt_wld_mhs, sw_mhs, bu_mhs, vlv_hnd_mhs, " & _
-             "make_on_mhs, mo_bckwld_mhs, cut_bev_mhs) " & _
-             "SELECT " & new_est_id & ", size_id, spool_qty, str_run_qty, butt_wld_qty, " & _
-             "sw_qty, bu_qty, vlv_hnd_qty, make_on_qty, mo_bckwld_qty, cut_bev_qty, " & _
-             "spool_mhs, str_run_mhs, butt_wld_mhs, sw_mhs, bu_mhs, vlv_hnd_mhs, " & _
-             "make_on_mhs, mo_bckwld_mhs, cut_bev_mhs " & _
-             "FROM tb_qtys WHERE est_id = " & old_id
+    new_est_id = Me.tbx_est_id                       ' This is the correct current est_id
+    If new_est_id = 0 Or IsNull(new_est_id) Then
+        MsgBox "Current estimate has no ID. Save it first."
+        Exit Sub
+    End If
     
-    ' Execute the copy
-    Set db = CurrentDb
-    db.Execute str_sql, dbFailOnError
+    ' 3. Copy the header fields from ta_data (old ? current)
+    Me.cbx_matl_id = Nz(DLookup("matl_id", "ta_data", "est_id = " & old_id), Null)
+    Me.cbx_flg_rtg_id = Nz(DLookup("flg_rtg_id", "ta_data", "est_id = " & old_id), Null)
+    Me.cbx_sb_rtg_id = Nz(DLookup("sb_rtg_id", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_rt_pct = Nz(DLookup("rt_pct", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_instr_mh = Nz(DLookup("instr_mh", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_sp_mh = Nz(DLookup("sp_mh", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_tie_mh = Nz(DLookup("tie_mh", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_supt_qty = Nz(DLookup("supt_qty", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_supt_mh = Nz(DLookup("supt_mh", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_grout_mh = Nz(DLookup("grout_mh", "ta_data", "est_id = " & old_id), Null)
+    Me.tbx_misc_mh = Nz(DLookup("misc_mh", "ta_data", "est_id = " & old_id), Null)
     
-    ' Requery the subform to show the new records
-    Me.fb_qtys.Requery
+    ' 4. Copy the quantities from tb_qtys
+    If DCount("*", "tb_qtys", "est_id = " & old_id) > 0 Then
+        str_sql = "INSERT INTO tb_qtys (est_id, size_id, sch_id, spool_qty, str_run_qty, butt_wld_qty, " & _
+                  "sw_qty, bu_qty, vlv_hnd_qty, make_on_qty, mo_bckwld_qty, cut_bev_qty, " & _
+                  "spool_mhs, str_run_mhs, butt_wld_mhs, sw_mhs, bu_mhs, vlv_hnd_mhs, " & _
+                  "make_on_mhs, mo_bckwld_mhs, cut_bev_mhs) " & _
+                  "SELECT " & new_est_id & " As est_id, size_id, sch_id, spool_qty, str_run_qty, butt_wld_qty, " & _
+                  "sw_qty, bu_qty, vlv_hnd_qty, make_on_qty, mo_bckwld_qty, cut_bev_qty, " & _
+                  "spool_mhs, str_run_mhs, butt_wld_mhs, sw_mhs, bu_mhs, vlv_hnd_mhs, " & _
+                  "make_on_mhs, mo_bckwld_mhs, cut_bev_mhs " & _
+                  "FROM tb_qtys WHERE est_id = " & old_id
+        
+        Set db = CurrentDb
+        db.Execute str_sql, dbFailOnError
+    End If
     
-    'Total up mhs
-    mGetMhs.TotalMhForIso
+    ' 5. Requery the subform to show new rows
+    Me.ff_qtys.Form.Requery        ' ? assuming subform control is named ff_qtys
+    
+    ' 6. Re-total MH
+    mGetMhs.CalculateTotalMhForCurrentIso
+    
+    ' 7. OPTIONAL: Stay on the same record (usually not needed if no navigation happened)
+    ' But if you ever lose position, this brings you back safely:
+    Dim rs As DAO.Recordset
+    Set rs = Me.RecordsetClone
+    rs.FindFirst "est_id = " & new_est_id
+    If Not rs.NoMatch Then Me.Bookmark = rs.Bookmark
+    Set rs = Nothing
+    
     Exit Sub
-    
-ErrHandler:
-    MsgBox "Error " & Err.Number & ": " & Err.Description
 
+ErrHandler:
+    MsgBox "Error " & Err.Number & ": " & Err.Description, vbCritical
 End Sub
 
 
@@ -100,31 +113,31 @@ Private Sub Form_Current()
         Dim currentID As Variant
         currentID = Me.est_id ' Replace "ID" with the actual field name in ta_data
         'MsgBox "You are now on record with ID: " & currentID, vbInformation, "Record Changed"
-        mGetMhs.TotalMhForIso
+        mGetMhs.CalculateTotalMhForCurrentIso
     End If
 End Sub
 
 
-Private Sub grout_mh_AfterUpdate()
-    mGetMhs.TotalMhForIso
+Private Sub tbx_instr_mh_AfterUpdate()
+    mGetMhs.CalculateTotalMhForCurrentIso
 End Sub
 
 
-Private Sub instr_mh_AfterUpdate()
-    mGetMhs.TotalMhForIso
+Private Sub tbx_sp_mh_AfterUpdate()
+    mGetMhs.CalculateTotalMhForCurrentIso
 End Sub
 
 
-Private Sub shop_supt_AfterUpdate()
-    mGetMhs.TotalMhForIso
+Private Sub tbx_supt_mh_AfterUpdate()
+    mGetMhs.CalculateTotalMhForCurrentIso
 End Sub
 
 
-Private Sub sp_mh_AfterUpdate()
-    mGetMhs.TotalMhForIso
+Private Sub tbx_grout_mh_AfterUpdate()
+    mGetMhs.CalculateTotalMhForCurrentIso
 End Sub
 
 
-Private Sub tie_mh_AfterUpdate()
-    mGetMhs.TotalMhForIso
+Private Sub tbx_misc_mh_AfterUpdate()
+    mGetMhs.CalculateTotalMhForCurrentIso
 End Sub
