@@ -1,16 +1,3 @@
-' filename:     EquipEstim1.vba
-'
-' Purpose:      Read Estimate Data, Perform Calculations, and Output Results back to Table
-'               1. Reads equipment estimate data 'table 'eq_data' into user defined type
-'               2. Reads 'z_calc_data' table data from recordset into user defined type
-'               3. Performs calculations and saves results into user defined type variables
-'               4. Outputs the calculated results back to the table ('eq_data')
-'
-' Dependencies: Library - Microsoft Scripting Runtime required when early binding method is used
-'               which is more efficient.
-'
-' By:  T.Sciple, 09/11/2024
-
 Option Compare Database
 
 Type est_data
@@ -20,6 +7,7 @@ Type est_data
     eq_desc As String
     hp As Double
     wt_lbs As Double
+    d1_val As Double
     driver_qty As Double
     mh_handle As Double
     mh_install As Double
@@ -42,42 +30,87 @@ Type calc_data
     mill_base_val As Double
     mill_exponent As Double
     base_matl_cost As Double
+    
 End Type
 
 
+
 Sub main()
-                
-    Dim ed() As est_data
-    Dim cd() As calc_data
     
+    '0.  Count the records
+    Dim eq_data_record_cnt As Long
+    eq_data_record_cnt = GetRecordCount("eq_data")
+       
     '1.  Read equipment data into custom structure and assign the structure values to an array
-    Call read_eq_data("eq_data", ed())
+    Dim est() As est_data
+    Call read_eq_data("eq_data", est(), eq_data_record_cnt)
     
     '2.  read calculation data into custom structure and assign the structure values to an array
-    Call read_calculation_data("z_calc_data", cd())
+     Dim calc_data_record_cnt As Long
+    calc_data_record_cnt = GetRecordCount("z_calc_data")
+    
+    Dim cd() As calc_data
+    Call read_calculation_data("z_calc_data", cd(), calc_data_record_cnt)
     
     '3.  perform estimate calculations
-    Call perform_estim_calculations(ed(), cd())
+    Call perform_estim_calculations(est(), cd(), eq_data_record_cnt)
     
     '4.  output the calculations to table
-    Call output_calculations("eq_data", ed())
+    Call output_calculations("eq_data", est(), eq_data_record_cnt)
     
-    MsgBox ("Run Completed")
+    MsgBox ("Calculations Completed")
     
     'cleanup
     Erase cd
-    Erase ed
+    Erase est
+
 End Sub
+
+
+'0.  Count the records
+Function GetRecordCount(ByVal tbl_name As String)
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+    Dim indx As Long
+    
+    Set db = CurrentDb
+    ' Open a recordset using a query or table name
+    
+    
+    Set rs = db.OpenRecordset("SELECT * FROM " & tbl_name)
+    
+    If Not rs.EOF Then
+        rs.MoveLast  ' Move to the last record to populate the count property
+        indx = rs.recordCount
+        Debug.Print "Total records (DAO): " & indx
+    End If
+    
+    rs.Close
+    Set rs = Nothing
+    Set db = Nothing
+
+    GetRecordCount = indx
+End Function
 
 
 '1.  Read Equipment Data
 Private Sub read_eq_data(ByVal tblName As String, _
-                        ByRef ed() As est_data)
+                        ByRef est() As est_data, _
+                        ByVal eq_data_record_cnt As Long)
                         
     On Error GoTo ErrorHandler
     
     Dim i As Long
+    Dim maxId As Long
     Dim rs As Object  'rs is defined as a record set object that can get the table data
+    
+    ' First, get the maximum eq_id to properly size the array (handles gaps in autonumber)
+    maxId = Nz(DMax("eq_id", tblName), 0)
+    If maxId = 0 Then
+        MsgBox "No records found or invalid eq_id values."
+        Exit Sub
+    End If
+    
     Set rs = CurrentDb.OpenRecordset(tblName)
     
     ' Check if the recordset is empty
@@ -87,77 +120,25 @@ Private Sub read_eq_data(ByVal tblName As String, _
     End If
     
     rs.MoveFirst
-    ' Initialize the array to hold the data
-    ReDim ed(0 To rs.RecordCount - 1)
     
-    ' Loop through the records and store data in the array
-    For i = 0 To rs.RecordCount - 1
-        ed(i).eq_id = rs!eq_id
-        ed(i).item_no = get_val_if_not_null(rs!item_no, s)
-        ed(i).eq_type = get_val_if_not_null(rs!eq_type, n)
-        ed(i).eq_desc = get_val_if_not_null(rs!eq_desc, s)
-        ed(i).hp = get_val_if_not_null(rs!hp, n)
-        ed(i).wt_lbs = get_val_if_not_null(rs!wt_lbs, n)
-        ed(i).driver_qty = get_val_if_not_null(rs!driver_qty, n)
-        If i < (rs.RecordCount - 1) Then rs.MoveNext
-    Next i
-
-    ' Close the recordset
-    rs.Close
-    Set rs = Nothing
-
-    'Exit the sub if no error is encountered
-    Exit Sub
-
-ErrorHandler:
-    MsgBox "Error: " & Err.Descriptionee
-    On Error Resume Next
-    rs.Close
-End Sub
-
-
-'2.  Read calculation data into custom structure and assign the structure values to an array
-Private Sub read_calculation_data(ByVal tblName As String, _
-                        ByRef cd() As calc_data)
-                        
-    On Error GoTo ErrorHandler
+    ' Initialize the array to hold the data based on max ID (not record count)
+    ReDim est(1 To maxId)
     
-    Dim rs As Object  'rs is defined as a record set object that can get the table data
-    Set rs = CurrentDb.OpenRecordset(tblName)
+    ' Loop through the recordset directly (handles gaps in autonumber)
+    Do While Not rs.EOF
+        i = rs!eq_id
+        est(i).eq_id = rs!eq_id
+        If IsNull(rs!item_no) Then est(i).item_no = "" Else est(i).item_no = rs!item_no
+        If IsNull(rs!eq_type) Then est(i).eq_type = 0 Else est(i).eq_type = rs!eq_type
+        If IsNull(rs!eq_desc) Then est(i).eq_desc = "" Else est(i).eq_desc = rs!eq_desc4
+        If IsNull(rs!hp) Then est(i).hp = 0 Else est(i).hp = rs!hp
+        If IsNull(rs!wt_lbs) Then est(i).wt_lbs = 0 Else est(i).wt_lbs = rs!wt_lbs
+        If IsNull(rs!d1_val) Then est(i).d1_val = 0 Else est(i).d1_val = rs!d1_val
+        If IsNull(rs!driver_qty) Then est(i).driver_qty = 0 Else est(i).driver_qty = rs!driver_qty
+        
+        rs.MoveNext
+    Loop
 
-    ' Ensure the recordset is not empty
-    If Not rs.EOF And Not rs.BOF Then
-        rs.MoveLast
-        rs.MoveFirst
-    Else
-        MsgBox "Recordset is empty."
-        rs.Close
-        Set rs = Nothing
-        Exit Sub
-    End If
-    
-    ' Initialize the array to hold the data
-    ReDim cd(0 To rs.RecordCount - 1)
-    
-    ' Loop through the records and store data in the array
-    Dim i As Long
-    For i = 0 To (rs.RecordCount - 1)
-        cd(i).cd_id = rs!cd_id
-        cd(i).eq_type = rs!eq_type
-        cd(i).grade_yn = rs!grade
-        cd(i).grade_yn = rs!grout_yn
-        cd(i).grout_matl = get_val_if_not_null(rs!grout_matl, "d")
-        cd(i).param_desc = get_val_if_not_null(rs!param_desc, "s")
-        cd(i).base_val = get_val_if_not_null(rs!base_val, "d")
-        cd(i).base_mh = get_val_if_not_null(rs!base_mh, "d")
-        cd(i).exponent_a = get_val_if_not_null(rs!exponent_a, "d")
-        cd(i).mill_base_mh = get_val_if_not_null(rs!mill_base_mh, "d")
-        cd(i).mill_base_val = get_val_if_not_null(rs!mill_base_val, "d")
-        cd(i).mill_exponent = get_val_if_not_null(rs!mill_exponent, "d")
-        cd(i).base_matl_cost = get_val_if_not_null(rs!base_matl_cost, "d")
-        If i < (rs.RecordCount - 1) Then rs.MoveNext
-    Next i
-    
     ' Close the recordset
     rs.Close
     Set rs = Nothing
@@ -172,90 +153,187 @@ ErrorHandler:
 End Sub
 
 
-'3.  perform estimate calculations
-Sub perform_estim_calculations(ByRef ed() As est_data, _
-                    ByRef cd() As calc_data)
-                    
-    Dim i As Long   'Loop index for the 'est' data
+
+
+'2.  Read calculation data into custom structure and assign the structure values to an array
+Private Sub read_calculation_data(ByVal tblName As String, _
+                        ByRef cd() As calc_data, _
+                        ByVal eq_data_record_cnt As Long)
+                        
+    On Error GoTo ErrorHandler
     
-    'create a dictionary object to map the
-    '   index of the z_calc_data [0-(recordCount-1)]
-    '   with the actual 'cd_id' field
-    Dim dict As Scripting.dictionary
-    Set dict = New Scripting.dictionary     'Early Binding Method used
+    Dim i As Long
+    Dim maxId As Long
+    Dim rs As Object  'rs is defined as a record set object that can get the table data
     
-    Dim j As Long   'Loop index for the 'z_calc_data'
-    For j = LBound(cd) To UBound(cd)
-        dict.Add Key:=cd(j).cd_id, Item:=j
-        'key = table 'z_calc_data' field 'cd_id'
-        ', item = Index [0 to (recordCount-1)]
-    Next j
-   
-    For i = LBound(ed) To UBound(ed)
-        'set j to index of the equipment type using the cooresponding type id
-        Dim cd_indx As Long
-        'return the index given the eq_type id number which is saved in the dictionary object as the key
-        cd_indx = dict(ed(i).eq_type)
+    ' First, get the maximum cd_id to properly size the array (handles gaps in autonumber)
+    maxId = Nz(DMax("cd_id", tblName), 0)
+    If maxId = 0 Then
+        MsgBox "No records found or invalid cd_id values."
+        Exit Sub
+    End If
+    
+    Set rs = CurrentDb.OpenRecordset(tblName)
+    
+    ' Check if the recordset is empty
+    If rs.EOF Then
+        MsgBox "Recordset is empty."
+        Exit Sub
+    End If
+    
+    rs.MoveFirst
+    
+    ' Initialize the array to hold the data based on max ID (not record count)
+    ReDim cd(1 To maxId)
+    
+    ' Loop through the recordset directly (handles gaps in autonumber)
+    Do While Not rs.EOF
+        i = rs!cd_id
+        cd(i).cd_id = rs!cd_id
+        cd(i).eq_type = rs!eq_type
+        cd(i).grade_yn = rs!grade
+        cd(i).grout_yn = rs!grout_yn
+        If IsNull(rs!grout_matl) Then cd(i).grout_matl = "" Else cd(i).grout_matl = rs!grout_matl
+        If IsNull(rs!param_desc) Then cd(i).param_desc = "" Else cd(i).param_desc = rs!param_desc
+        If IsNull(rs!base_val) Then cd(i).base_val = 0 Else cd(i).base_val = rs!base_val
+        If IsNull(rs!base_mh) Then cd(i).base_mh = 0 Else cd(i).base_mh = rs!base_mh
+        If IsNull(rs!exponent_a) Then cd(i).exponent_a = 0 Else cd(i).exponent_a = rs!exponent_a
+        If IsNull(rs!mill_base_mh) Then cd(i).mill_base_mh = 0 Else cd(i).mill_base_mh = rs!mill_base_mh
+        If IsNull(rs!mill_base_val) Then cd(i).mill_base_val = 0 Else cd(i).mill_base_val = rs!mill_base_val
+        If IsNull(rs!mill_exponent) Then cd(i).mill_exponent = 0 Else cd(i).mill_exponent = rs!mill_exponent
+        If IsNull(rs!base_matl_cost) Then cd(i).base_matl_cost = 0 Else cd(i).base_matl_cost = rs!base_matl_cost
         
-        If cd_indx = 0 Then
-            'zero the calculation if no type is identified
-            ed(i).mh_install = 0
+        rs.MoveNext
+    Loop
+
+    ' Close the recordset
+    rs.Close
+    Set rs = Nothing
+
+    'Exit the sub if no error is encountered
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "Sub 2 Error: " & Err.Description & "Loop Index = " & i
+    On Error Resume Next
+    rs.Close
+End Sub
+
+
+
+'3.  perform estimate calculations
+Sub perform_estim_calculations(ByRef est() As est_data, _
+                    ByRef cd() As calc_data, _
+                        ByVal eq_data_record_cnt As Long)
+                    
+    Dim i As Long
+    Dim j As Long
+   
+    For i = LBound(est) To UBound(est)
+        'set j to index of the equipment type using the cooresponding
+        
+        j = est(i).eq_type
+       
+        'used for troubleshooting
+        'If i = 20 Then
+        '    i = 20
+        'End If
+        
+        If j = 0 Then
+            'zero the calculation if not type is identified
+            est(i).mh_install = 0
         Else
             'Calculate the install manhours
-            If cd(cd_indx).param_desc = "hp" Then
-                ed(i).mh_install = RoundUpToIncr(0.9 * cd(cd_indx).base_mh * (ed(i).hp / _
-                                   cd(cd_indx).base_val) ^ cd(cd_indx).exponent_a, 5)
-                ed(i).misc_matl_cost = RoundUpToIncr(0.9 * cd(cd_indx).base_matl_cost * _
-                                       (ed(i).hp / cd(cd_indx).base_val) ^ cd(cd_indx).exponent_a, 5)
-            Else
-                'otherwise assume weight based calculation of manhours
-                If cd(cd_indx).base_mh = 0 Then
-                    ed(i).mh_install = 0
+            Dim mh_type As String
+            
+            
+            Select Case cd(j).param_desc
+            
+            Case "hp"
+                est(i).mh_install = misc.RoundUpToIncrement(0.9 * cd(j).base_mh * (est(i).hp / cd(j).base_val) ^ cd(j).exponent_a, 5)
+                est(i).misc_matl_cost = misc.RoundUpToIncrement(cd(j).base_matl_cost * (est(i).hp / cd(j).base_val) ^ cd(j).exponent_a, 5)
+            Case "cf"
+                If cd(j).base_mh = 0 Then
+                    est(i).mh_install = 0
                 Else
-                    ed(i).mh_install = RoundUpToIncr(0.9 * cd(cd_indx).base_mh * _
-                                       (ed(i).wt_lbs / cd(cd_indx).base_val) ^ cd(cd_indx).exponent_a, 5)
-                    ed(i).misc_matl_cost = RoundUpToIncr(cd(cd_indx).base_matl_cost * _
-                                           (ed(i).wt_lbs / cd(cd_indx).base_val) ^ cd(cd_indx).exponent_a, 5)
+                    est(i).mh_install = misc.RoundUpToIncrement(0.9 * cd(j).base_mh * (est(i).wt_lbs / cd(j).base_val) ^ cd(j).exponent_a, 5)
+                    est(i).misc_matl_cost = misc.RoundUpToIncrement(cd(j).base_matl_cost * (est(i).wt_lbs / cd(j).base_val) ^ cd(j).exponent_a, 5)
                 End If
-            End If
-        
+            
+            Case "wt"
+                If cd(j).base_mh = 0 Then
+                    est(i).mh_install = 0
+                Else
+                    est(i).mh_install = misc.RoundUpToIncrement(0.9 * cd(j).base_mh * (est(i).wt_lbs / cd(j).base_val) ^ cd(j).exponent_a, 5)
+                    est(i).misc_matl_cost = misc.RoundUpToIncrement(cd(j).base_matl_cost * (est(i).wt_lbs / cd(j).base_val) ^ cd(j).exponent_a, 5)
+                End If
+            Case Else
+                'MsgBox ("invalid estim param, wt, cf, hp provided")
+            
+            End Select
+            
             'Calculate the handling hours assume 10% of installation hours
-            ed(i).mh_handle = RoundUpToIncr(ed(i).mh_install / 0.9 - ed(i).mh_install, 5)
+            est(i).mh_handle = misc.RoundUpToIncrement(est(i).mh_install / 0.9 - est(i).mh_install, 5)
         
-            'Calculate the millwright hours
-            If (ed(i).driver_qty) > 0 And cd(cd_indx).mill_base_val > 0 Then
-                ed(i).sub_mh_mill = RoundUpToIncr(ed(i).driver_qty * cd(cd_indx).mill_base_mh * _
-                                    (ed(i).hp / cd(cd_indx).mill_base_val) ^ cd(cd_indx).mill_exponent, 5)
+            'Calculate the millwright hours assume
+            If (est(i).driver_qty) > 0 And cd(j).mill_base_val > 0 Then
+                est(i).sub_mh_mill = misc.RoundUpToIncrement(est(i).driver_qty * cd(j).mill_base_mh * (est(i).hp / cd(j).mill_base_val) ^ cd(j).mill_exponent, 5)
             Else
-                ed(i).sub_mh_mill = 0
+                est(i).sub_mh_mill = 0
             End If
         End If
+        
     Next i
+    
+    'Exit the sub if no error is encountered
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "Sub 3 Error: " & Err.Description
+    On Error Resume Next
+    rs.Close
+
 End Sub
+
 
 
 '4.  output the calculations to table
 Sub output_calculations(ByVal tblName As String, _
-                    ByRef ed() As est_data)
+                    ByRef est() As est_data, _
+                        ByVal eq_data_record_cnt As Long)
                     'Array Parameter is setup as estimate data
                     
     On Error GoTo ErrorHandler
-    Dim last_record As Long
+    
+    Dim i As Long
     Dim rs As Object  'rs is defined as a record set object that can get the table data
     Set rs = CurrentDb.OpenRecordset(tblName)
     
+
+    ' Check if the recordset is empty
+    If rs.EOF Then
+        MsgBox "Recordset is empty."
+        Exit Sub
+    End If
+    
     rs.MoveFirst
-    ' Loop through the records and write the array to the matching records
-    Dim i As Long
-    For i = 0 To rs.RecordCount - 1
-        rs.Edit
-        rs("mh_handle") = ed(i).mh_handle
-        rs("mh_install") = ed(i).mh_install
-        rs("sub_mh_mill") = ed(i).sub_mh_mill
-        rs("misc_matl_cost") = ed(i).misc_matl_cost
-        rs.Update
-        If i < (rs.RecordCount - 1) Then rs.MoveNext
-    Next i
+    
+    ' Loop through the recordset directly (handles gaps in autonumber)
+    Do While Not rs.EOF
+        i = rs!eq_id
+        
+        ' Skip if the array element is empty (eq_id = 0 means it was a gap)
+        If est(i).eq_id > 0 Then
+            rs.Edit
+            rs("mh_handle") = est(i).mh_handle
+            rs("mh_install") = est(i).mh_install
+            rs("sub_mh_mill") = est(i).sub_mh_mill
+            rs("misc_matl_cost") = est(i).misc_matl_cost
+            rs.Update
+        End If
+        
+        rs.MoveNext
+    Loop
 
     ' Close the recordset and release objects from memory
     rs.Close
@@ -265,32 +343,9 @@ Sub output_calculations(ByVal tblName As String, _
     Exit Sub
 
 ErrorHandler:
-    MsgBox "Error: " & Err.Description
+    MsgBox "Sub 4 Error: " & Err.Description
     On Error Resume Next
     rs.Close
+
+
 End Sub
-
-
-Function get_val_if_not_null(ByVal rs_value As Variant, ByVal udt_type As String) As Variant
-    'udt_type = "s" for string, "n" = numeric (integer, long, double)
-    If IsNull(rs_value) Then
-        If udt_type = "s" Then get_val_if_not_null = ""
-        If udt_type = "n" Then get_val_if_not_null = 0
-    Else
-        get_val_if_not_null = rs_value
-    End If
-End Function
-
-
-Function RoundUpToIncr(num As Double, increment As Double) As Double
-    Dim remainder As Double
-    remainder = num - Int(num / increment) * increment
-    
-    If Abs(remainder) < 0.00001 Then  ' epsilon check for floating-point precision
-        RoundUpToIncr = num
-    ElseIf num < 0 Then
-        RoundUpToIncr = Int(num / increment) * increment
-    Else
-        RoundUpToIncr = (Int(num / increment) + 1) * increment
-    End If
-End Function
