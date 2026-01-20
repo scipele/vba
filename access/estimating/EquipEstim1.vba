@@ -1,5 +1,19 @@
+Option Explicit
+'| Item	        | Documentation Notes                                         |
+'|--------------|-------------------------------------------------------------|
+'| Filename     | EquipEstim1.vba                                             |
+'| EntryPoint   | module - calcs, main sub                                    |
+'| Purpose      | compute estimate work hours for various equipment types     |
+'| Inputs       | read from the database tables                               |
+'| Outputs      | number of work hours, matl costs                            |
+'| Dependencies | none                                                        |
+'| By Name,Date | T.Sciple, 1/20/2026                                         |
+
 Option Compare Database
 
+'===============================================================================================
+' User-defined data types
+'===============================================================================================
 Type est_data
     eq_id As Integer
     item_no As String
@@ -30,11 +44,12 @@ Type calc_data
     mill_base_val As Double
     mill_exponent As Double
     base_matl_cost As Double
-    
 End Type
 
 
-
+'===============================================================================================
+' Main entry point for equipment estimating calculations
+'===============================================================================================
 Sub main()
     
     '0.  Count the records
@@ -63,11 +78,12 @@ Sub main()
     'cleanup
     Erase cd
     Erase est
-
 End Sub
 
 
-'0.  Count the records
+'===============================================================================================
+' Count the records in a table
+'===============================================================================================
 Function GetRecordCount(ByVal tbl_name As String)
     Dim db As DAO.Database
     Dim rs As DAO.Recordset
@@ -75,7 +91,6 @@ Function GetRecordCount(ByVal tbl_name As String)
     
     Set db = CurrentDb
     ' Open a recordset using a query or table name
-    
     
     Set rs = db.OpenRecordset("SELECT * FROM " & tbl_name)
     
@@ -88,12 +103,13 @@ Function GetRecordCount(ByVal tbl_name As String)
     rs.Close
     Set rs = Nothing
     Set db = Nothing
-
     GetRecordCount = indx
 End Function
 
 
+'===============================================================================================
 '1.  Read Equipment Data
+'===============================================================================================
 Private Sub read_eq_data(ByVal tblName As String, _
                         ByRef est() As est_data, _
                         ByVal eq_data_record_cnt As Long)
@@ -153,9 +169,9 @@ ErrorHandler:
 End Sub
 
 
-
-
+'===============================================================================================
 '2.  Read calculation data into custom structure and assign the structure values to an array
+'===============================================================================================
 Private Sub read_calculation_data(ByVal tblName As String, _
                         ByRef cd() As calc_data, _
                         ByVal eq_data_record_cnt As Long)
@@ -217,11 +233,13 @@ ErrorHandler:
     MsgBox "Sub 2 Error: " & Err.Description & "Loop Index = " & i
     On Error Resume Next
     rs.Close
+    Set rs = Nothing
 End Sub
 
 
-
+'===============================================================================================
 '3.  perform estimate calculations
+'===============================================================================================
 Sub perform_estim_calculations(ByRef est() As est_data, _
                     ByRef cd() As calc_data, _
                         ByVal eq_data_record_cnt As Long)
@@ -292,12 +310,13 @@ ErrorHandler:
     MsgBox "Sub 3 Error: " & Err.Description
     On Error Resume Next
     rs.Close
-
+    Set rs = Nothing
 End Sub
 
 
-
+'===============================================================================================
 '4.  output the calculations to table
+'===============================================================================================
 Sub output_calculations(ByVal tblName As String, _
                     ByRef est() As est_data, _
                         ByVal eq_data_record_cnt As Long)
@@ -346,6 +365,5 @@ ErrorHandler:
     MsgBox "Sub 4 Error: " & Err.Description
     On Error Resume Next
     rs.Close
-
-
+    Set rs = Nothing
 End Sub
