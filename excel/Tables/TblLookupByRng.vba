@@ -11,19 +11,23 @@ Option Explicit
 '| cell D11     | rowValueLkp                                                 |
 '| cell E11     | colValueLkp                                                 |
 '| Dependencies | none                                                        |
-'| By Name/Date | T.Sciple, 12/04/2024                                        |
+'| By Name/Date | T.Sciple, 11/28/2024                                        |
 
 Public Function FindTableValueWithRng(ByRef tableRange As Range, _
                                       ByVal rowValueLkp As String, _
                                       ByVal colValueLkp As String) As Variant
+    
+    'Convert the table range to a listobject
+    Dim tableObj As ListObject
+    Set tableObj = tableRange.ListObject
+    
     Dim lookupRange As Range
-    Set lookupRange = ResolveLookupRange(tableRange)
-
+    Set lookupRange = tableObj.Range
+    
     ' Set blank and error handling conditions
     If rowValueLkp = "" Then GoTo Lbl_HandleBlankCondition
 
     ' Find the matching row and column using MATCH against the full resolved range.
-    ' This avoids filtered/visible-only range behavior during formula evaluation.
     Dim rowIndex As Variant, colIndex As Variant
     rowIndex = Application.Match(rowValueLkp, lookupRange.Columns(1), 0)
     colIndex = Application.Match(colValueLkp, lookupRange.Rows(1), 0)
@@ -44,35 +48,3 @@ Lbl_HandleBlankCondition:
 
 End Function
 
-Private Function ResolveLookupRange(ByVal sourceRange As Range) As Range
-    Dim tableObj As ListObject
-    On Error Resume Next
-    Set tableObj = sourceRange.ListObject
-    On Error GoTo 0
-
-    If Not tableObj Is Nothing Then
-        Set ResolveLookupRange = tableObj.Range
-        Exit Function
-    End If
-
-    If sourceRange.Areas.Count = 1 Then
-        Set ResolveLookupRange = sourceRange
-        Exit Function
-    End If
-
-    Dim area As Range
-    Dim minRow As Long, minCol As Long, maxRow As Long, maxCol As Long
-    minRow = sourceRange.Worksheet.Rows.Count
-    minCol = sourceRange.Worksheet.Columns.Count
-
-    For Each area In sourceRange.Areas
-        If area.Row < minRow Then minRow = area.Row
-        If area.Column < minCol Then minCol = area.Column
-        If area.Row + area.Rows.Count - 1 > maxRow Then maxRow = area.Row + area.Rows.Count - 1
-        If area.Column + area.Columns.Count - 1 > maxCol Then maxCol = area.Column + area.Columns.Count - 1
-    Next area
-
-    Set ResolveLookupRange = sourceRange.Worksheet.Range( _
-        sourceRange.Worksheet.Cells(minRow, minCol), _
-        sourceRange.Worksheet.Cells(maxRow, maxCol))
-End Function
