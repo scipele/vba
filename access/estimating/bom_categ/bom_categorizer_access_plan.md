@@ -24,17 +24,17 @@ AJ|XX|X|0001|AB|AB|11|00|A|X
 - [ ] d_bom_parsed — Parsed and categorized BOM data
 
 ### Lookup and parsing Tables (prefix: `lkp_`,`p_`)
-- [ ] lkp_com_code          |  [ ] p_com_code
-- [ ] lkp_size              |  [ ] p_size
-- [ ] lkp_rtg               |  [ ] p_rtg
-- [ ] lkp_indx_code         |  [ ] p_indx_code
-- [ ] lkp_matl_code         |  [ ] p_matl_code
-- [ ] lkp_matl_grade        |  [ ] p_matl_grade
-- [ ] lkp_sch               |  [ ] p_sch
-- [ ] lkp_end_typ           |  [ ] p_end_typ
+- [ ] parse_def_com_code
+- [ ] parse_def_size
+- [ ] parse_def_rtg
+- [x] parse_def_indx_code
+- [ ] parse_def_matl_code
+- [ ] parse_def_matl_grade
+- [ ] parse_def_sch
+- [ ] parse_def_end_typ
 
 ##  VBA Module Plan
-- [ ] **mParseSizes**: Parse and convert size fields
+- [x] **mParseSizes**: Parse and convert size fields
 - [ ] **mCategBom**: Assign commodity codes using lookups
 - [ ] **mUtil**: Helper functions (timing, logging, etc.)
 
