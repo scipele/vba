@@ -1,7 +1,6 @@
 Option Compare Database
 Option Explicit
 
-
 ' =============================================================================
 ' Module:       maMain
 ' Purpose:      Shared constants, utilities, and master entry point for
@@ -13,12 +12,12 @@ Option Explicit
 
 ' --- Shared Constants --------------------------------------------------------
 Public Const DELIM As String = "|"
-Public Const TBL_BOM_RAW As String = "d_bom_raw"
+Public Const TBL_BOM_RAW As String = "d_bom"
 
 
 ' =============================================================================
 ' Master Entry Point – runs all BOM processing steps in sequence
-' =============================================================================
+' ===================================================4==========================
 Public Sub RunAllBomProcessing()
     ParseAndUpdateBomSizes
     CategorizeBom
@@ -28,7 +27,39 @@ End Sub
 
 
 ' =============================================================================
-' Shared: Load d_bom_raw descriptions into parallel arrays
+' Clear all data in specified fields of d_bom table
+' =============================================================================
+Public Sub ClearBomProcessedData()
+    Dim db As DAO.Database
+    Dim sql As String
+    
+    On Error GoTo ErrorHandler
+    
+    Set db = CurrentDb
+    
+    ' Update all records in d_bom, setting specified fields to NULL
+    sql = "UPDATE [" & TBL_BOM_RAW & "] " & _
+          "SET [sz_1] = Null, " & _
+          "[sz_2] = Null, " & _
+          "[desc] = Null, " & _
+          "[categ_id] = Null, " & _
+          "[matl_id] = Null"
+    
+    db.Execute sql, dbFailOnError
+    
+    MsgBox "All data cleared from d_bom table.", vbInformation
+    
+    Set db = Nothing
+    Exit Sub
+    
+ErrorHandler:
+    MsgBox "Error clearing d_bom data: " & Err.Description, vbCritical
+    Set db = Nothing
+End Sub
+
+
+' =============================================================================
+' Shared: Load d_bom descriptions into parallel arrays
 ' =============================================================================
 Public Sub LoadBomDescs(ByRef descs() As String, _
                         ByRef rawIds() As Long, _
