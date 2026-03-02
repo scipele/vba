@@ -14,8 +14,8 @@ Option Explicit
 
 
 ' --- Module-level Constants --------------------------------------------------
-Private Const TBL_PARSE_DEF As String = "parse_indx_code"
-Private Const TBL_MATL_DEF As String = "parse_matl"
+'Private Const TBL_PARSE_DEF As String = "parse_indx_code"
+'Private Const TBL_MATL_DEF As String = "parse_matl"
 
 
 ' --- Unified UDT for any rule-based matching ---------------------------------
@@ -59,7 +59,7 @@ End Type
 Public Sub ClassifyAllBomFields()
     Dim defs() As RuleSourceDef
     Dim def_count As Long
-    BuildRuleSourceDefs defs, def_count
+    Call BuildRuleSourceDefs(defs, def_count)
 
     Dim i As Long
     Dim rules() As BomRule
@@ -84,26 +84,30 @@ End Sub
 ' =============================================================================
 Private Sub BuildRuleSourceDefs(ByRef defs() As RuleSourceDef, _
                                 ByRef defCount As Long)
-    defCount = 2
+    defCount = 1
+    
     ReDim defs(0 To defCount - 1)
 
     ' --- Category rules ------------------------------------------------------
     With defs(0)
-        .tbl_name = TBL_PARSE_DEF
+        .tbl_name = "parse_indx_code"
         .fld_id = "id_pd_code"
         .fld_active = ""
         .order_by = "[id_pd_code]"
         .target_field = "categ_id"
     End With
-
+    '************************************************************************************
+    '**************************** TO DO *************************************************
+    '************************************************************************************
+    
     ' --- Material rules ------------------------------------------------------
-    With defs(1)
-        .tbl_name = TBL_MATL_DEF
-        .fld_id = "id_mat_rule"
-        .fld_active = "is_active"
-        .order_by = "[priority] DESC, [id_mat_rule]"
-        .target_field = "matl_id"
-    End With
+    'With defs(1)
+        '.tbl_name = "parse_matl"
+        '.fld_id = "id_mat_rule"
+        '.fld_active = "is_active"
+        '.order_by = "[priority] DESC, []"
+        '.target_field = "matl_id"
+    'End With
 End Sub
 
 
@@ -169,15 +173,15 @@ Private Function RuleMatches(ByVal descStr As String, _
     RuleMatches = False
 
     If rule.has_inclAll Then
-        If Not AllTokensFound(descStr, rule.inclAll) Then Exit Function
+        If Not mz_util.AllTokensFound(descStr, rule.inclAll) Then Exit Function
     End If
 
     If rule.has_inclAny Then
-        If Not AnyTokenFound(descStr, rule.inclAny) Then Exit Function
+        If Not mz_util.AnyTokenFound(descStr, rule.inclAny) Then Exit Function
     End If
 
     If rule.has_exclAny Then
-        If AnyTokenFound(descStr, rule.exclAny) Then Exit Function
+        If mz_util.AnyTokenFound(descStr, rule.exclAny) Then Exit Function
     End If
 
     ' Require at least one inclusive condition to have been defined

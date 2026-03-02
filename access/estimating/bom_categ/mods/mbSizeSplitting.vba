@@ -76,7 +76,7 @@ Public Sub ParseAndUpdateBomSizes()
         rs.MoveFirst
         Do While Not rs.EOF
             desc_str = Nz(rs!desc_w_size, "")
-            desc_str = RemoveNonPrintableASCII(desc_str)
+            desc_str = mz_util.RemoveNonPrintableASCII(desc_str)
             Dim sr As SizeResult
             sr = ParseSizes(desc_str)
 
