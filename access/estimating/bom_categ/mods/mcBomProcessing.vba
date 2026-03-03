@@ -7,7 +7,7 @@ Option Explicit
 '               rule-based matching.  Shared utilities live in maMain.
 '               Size parsing has been moved to mSizeSplitting.
 ' Inputs:       Tables: d_bom, parse_indx_code, parse_matl
-' Outputs:      Updates categ_id, matl_id in d_bom
+' Outputs:      Updates id_categ, id_matl in d_bom
 ' Dependencies: maMain module, DAO
 ' By:           T.Sciple, 02/28/2026
 ' =============================================================================
@@ -43,7 +43,7 @@ Private Type RuleSourceDef
     fld_id        As String      ' PK / rule-id column
     fld_active    As String      ' is_active column  ("" = no filter)
     order_by      As String      ' ORDER BY clause   (without "ORDER BY")
-    target_field  As String      ' column to update in d_bom (e.g. "categ_id")
+    target_field  As String      ' column to update in d_bom (e.g. "id_categ")
 End Type
 
 
@@ -84,7 +84,7 @@ End Sub
 ' =============================================================================
 Private Sub BuildRuleSourceDefs(ByRef defs() As RuleSourceDef, _
                                 ByRef defCount As Long)
-    defCount = 1
+    defCount = 2
     
     ReDim defs(0 To defCount - 1)
 
@@ -94,20 +94,17 @@ Private Sub BuildRuleSourceDefs(ByRef defs() As RuleSourceDef, _
         .fld_id = "id_pd_code"
         .fld_active = ""
         .order_by = "[id_pd_code]"
-        .target_field = "categ_id"
+        .target_field = "id_categ"
     End With
-    '************************************************************************************
-    '**************************** TO DO *************************************************
-    '************************************************************************************
-    
+
     ' --- Material rules ------------------------------------------------------
-    'With defs(1)
-        '.tbl_name = "parse_matl"
-        '.fld_id = "id_mat_rule"
-        '.fld_active = "is_active"
-        '.order_by = "[priority] DESC, []"
-        '.target_field = "matl_id"
-    'End With
+    With defs(1)
+        .tbl_name = "parse_matl"
+        .fld_id = "id_matl"
+        .fld_active = ""
+        .order_by = "[id_matl]"
+        .target_field = "id_matl"
+    End With
 End Sub
 
 
@@ -134,13 +131,13 @@ Private Sub ApplyRulesToBom(ByRef rules() As BomRule, _
         If matched_id > 0 Then
             sql = "UPDATE [" & TBL_BOM_RAW & "]" & _
                   " SET [" & targetField & "] = " & matched_id & _
-                  " WHERE [id_raw] = " & ids(i)
+                  " WHERE [id_bom] = " & ids(i)
             db.Execute sql, dbFailOnError
         End If
     Next i
 
     Set db = Nothing
-    MsgBox targetField & " update complete.  " & desc_count & _
+    'MsgBox targetField & " update complete.  " & desc_count & _
            " rows processed.", vbInformation
 End Sub
 
