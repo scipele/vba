@@ -41,8 +41,8 @@ Public Sub ClearBomProcessedData()
           "SET [sz_1] = Null, " & _
           "[sz_2] = Null, " & _
           "[desc] = Null, " & _
-          "[categ_id] = Null, " & _
-          "[matl_id] = Null"
+          "[id_categ] = Null, " & _
+          "[id_matl] = Null"
     
     db.Execute sql, dbFailOnError
     
@@ -67,7 +67,7 @@ Public Sub LoadBomDescs(ByRef descs() As String, _
     Dim rs As DAO.Recordset
     Set db = CurrentDb
     Set rs = db.OpenRecordset( _
-             "SELECT [id_raw], [desc] FROM [" & TBL_BOM_RAW & "]", _
+             "SELECT [id_bom], [desc] FROM [" & TBL_BOM_RAW & "]", _
              dbOpenSnapshot)
 
     If rs.EOF And rs.BOF Then
@@ -89,7 +89,7 @@ Public Sub LoadBomDescs(ByRef descs() As String, _
     idx = 0
 
     Do While Not rs.EOF
-        rawIds(idx) = Nz(rs!id_raw, 0)
+        rawIds(idx) = Nz(rs!id_bom, 0)
         descs(idx) = Trim(Nz(rs!desc, ""))
         idx = idx + 1
         rs.MoveNext
