@@ -28,8 +28,7 @@ AJ|XX|X|0001|AB|AB|11|00|A|X
 - [ ] parse_def_size
 - [ ] parse_def_rtg
 - [x] parse_def_indx_code
-- [ ] parse_def_matl_code
-- [ ] parse_def_matl_grade
+- [x] parse_def_matl_code_grade
 - [ ] parse_def_sch
 - [ ] parse_def_end_typ
 
