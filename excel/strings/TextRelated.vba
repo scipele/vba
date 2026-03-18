@@ -372,6 +372,45 @@ Public Sub RemoveAnyLineFeedChar()
 End Sub
 
 
+Public Sub CleanTitleForFieldName()
+    Dim cell As Range
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    For Each cell In Selection
+        Dim str As String
+        str = CStr(cell.value)
+        If Len(str) > 0 Then
+            'Normalize whitespace: convert line breaks, tabs, NBSP to space first
+            str = Replace(str, vbCrLf, " ")
+            str = Replace(str, vbCr, " ")
+            str = Replace(str, vbLf, " ")
+            str = Replace(str, vbTab, " ")
+            str = Replace(str, Chr(160), " ")  ' non-breaking space
+            'Trim and collapse multiple spaces
+            str = Trim(str)
+            str = RemoveMultSpaces(str)
+            'Replace spaces with underscore
+            str = Replace(str, " ", "_")
+            'Collapse multiple underscores
+            Do While InStr(str, "__") > 0
+                str = Replace(str, "__", "_")
+            Loop
+            'Trim leading/trailing underscores
+            Do While Len(str) > 0 And Left$(str, 1) = "_"
+                str = Mid$(str, 2)
+            Loop
+            Do While Len(str) > 0 And Right$(str, 1) = "_"
+                str = Left$(str, Len(str) - 1)
+            Loop
+            'Ensure first character is a letter; if not, prefix underscore
+            If Len(str) > 0 Then
+                If Not (str Like "[A-Za-z]*") Then str = "_" & str
+            End If
+            cell.value = LCase(str)
+        End If
+    Next cell
+End Sub
+
+
 Public Sub TrimLeadingAndTrailingSpaces()
     Dim cell As Range
     For Each cell In Selection
