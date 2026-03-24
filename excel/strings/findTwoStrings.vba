@@ -1,7 +1,7 @@
 Option Explicit
-'| Item	        | Documentation Notes                                         |
+'| Item         | Documentation Notes                                         |
 '|--------------|-------------------------------------------------------------|
-'| Filename     | findTwoStrings.vba                                          |
+'| Filename     | findTwoMatches.vba                                          |
 '| EntryPoint   | TestFindTwoSubstringMatches                                 |
 '| Purpose      | Search for up to two instances of specified substrings      |
 '| Inputs       | str - the string to search,                                 |
@@ -9,63 +9,128 @@ Option Explicit
 '|              | splitDelim - the delimiter for substrings                   |
 '| Outputs      | An array of MatchData w/ found substrings & positions       |
 '| Dependencies | none                                                        |
-'| By Name,Date | T.Sciple, 03/20/2026                                        |
+'| By Name,Date | T.Sciple, 03/24/2026                                        |
 
 
 Public Type MatchData
-    FoundTxt As String
-    NextSearchPosition As Long
+    MatchingId As Long
+    NextSearchPosition As Integer
 End Type
 
 
-Sub TestFindTwoSubstringMatches()
-    Dim str As String
-    str = "Concentric Reducer s/80 x s/40"
+Sub FindTwoSubstringMatches()
     
-    Dim results() As MatchData
-    results = findTwoSubstringMatches(str, "S/40|S/80|S/160|S/60", "|")
+    Dim rules As Variant
+    rules = Split("S/40|S/60|S/80|S/120|S/160", "|")
     
-    Dim i As Long
-    For i = LBound(results) To UBound(results)
-        Debug.Print "Match " & i + 1 & ": " & _
-            "FoundTxt=" & results(i).FoundTxt & ", " & _
-            "NextSearchPosition=" & results(i).NextSearchPosition
-    Next i
+    Dim test_strings As Variant
+    test_strings = Split("Concentric Reducer s/80 x s/40|Elbow s/120", "|")
+    
+    Dim md As MatchData
+    Dim str As Variant
+    
+    For Each str In test_strings
+        
+        Debug.Print "string searched", str
+        
+        ' === First match (earliest position) ===
+        md = mcMatcher.FindEarliestPositionMatch(CStr(str), rules)
+        Debug.Print vbTab & "Earliest match : " & mcMatcher.GetMatchedRule(md.MatchingId, rules) & _
+                    "  (next search position " & md.NextSearchPosition & ")"
+        
+        ' === Second match after first one ===
+        Dim secondId As Long
+        secondId = mcMatcher.FindIndexOfAnyMatch(CStr(str), md.NextSearchPosition, rules)
+        
+        Debug.Print vbTab & "Second match   : " & mcMatcher.GetMatchedRule(secondId, rules)
+        Debug.Print String(60, "-")
+    Next str
+    
 End Sub
 
 
-Function findTwoSubstringMatches(ByVal str As String, _
-                                 ByVal srchItemsStr As Variant, _
-                                 ByVal splitDelim As String) _
-                                 As MatchData()
-    Dim md(1) As MatchData
+Sub FindAnySubstringMatch()
     
-    Dim srchItems As Variant
-    srchItems = Split(srchItemsStr, splitDelim)
+    Dim rules As Variant
+    rules = Split("S/40|S/60|S/80|S/120|S/160", "|")
     
-    Dim start_pos As Long
-    start_pos = 1
+    Dim test_strings As Variant
+    test_strings = Split("Concentric Reducer s/80 x s/40|Elbow s/120", "|")
+    
+    Dim md As MatchData
+    Dim str As Variant
+    
+    For Each str In test_strings
+        
+        Debug.Print "string searched", str
+        ' === Single Match
+        Dim secondId As Long
+        secondId = FindIndexOfAnyMatch(CStr(str), 1, rules)
+        
+        Debug.Print vbTab & "Single match   : " & mcMatcher.GetMatchedRule(secondId, rules)
+        Debug.Print String(60, "-")
+    Next str
+    
+End Sub
+
+
+Public Function FindEarliestPositionMatch(ByVal searched_str As String, _
+                                           ByRef rules As Variant) _
+                                           As MatchData
+
+    Dim cur_pos As Integer
+    Dim earliest_pos As Integer
+    Dim earliest_match_index As Long
+    
+    Dim td As MatchData
+    
+    td.MatchingId = -1
+    td.NextSearchPosition = 0
+    
     Dim i As Long
-    Dim earliest_pos As Long
-    Dim item As Variant
-    Dim cur_pos As Long
-    For i = 0 To 1
-        earliest_pos = 0
-        
-        For Each item In srchItems
-            cur_pos = InStr(start_pos, str, item, vbTextCompare)
-            If cur_pos > 0 Then
-                If earliest_pos = 0 Or cur_pos < earliest_pos Then
-                    md(i).FoundTxt = item
-                    md(i).NextSearchPosition = cur_pos + Len(item)
-                    earliest_pos = cur_pos
-                End If
+    For i = LBound(rules) To UBound(rules)
+        cur_pos = InStr(1, searched_str, rules(i), vbTextCompare)
+        If cur_pos > 0 Then
+            If earliest_pos = 0 Or cur_pos < earliest_pos Then
+                earliest_pos = cur_pos
+                earliest_match_index = i
+                td.MatchingId = i
+                td.NextSearchPosition = cur_pos + Len(rules(i))
             End If
-        Next item
-        
-        If md(i).NextSearchPosition = 0 Or md(i).NextSearchPosition > Len(str) Then Exit For
-        start_pos = md(i).NextSearchPosition
+        End If
     Next i
     
-    findTwoSubstringMatches = md
+    FindEarliestPositionMatch = td
+End Function
+
+
+Public Function FindIndexOfAnyMatch(ByVal searched_str As String, _
+                                    ByVal start_pos As Integer, _
+                                    ByRef rules As Variant) _
+                                    As Long
+
+    start_pos = IIf(start_pos = 0, 1, start_pos)
+    
+    Dim cur_pos As Long
+    Dim i As Long
+    For i = LBound(rules) To UBound(rules)
+        cur_pos = InStr(start_pos, searched_str, rules(i), vbTextCompare)
+        If cur_pos > 0 Then
+            FindIndexOfAnyMatch = i
+            Exit Function
+        End If
+    Next i
+    
+    FindIndexOfAnyMatch = -1
+End Function
+
+
+Public Function GetMatchedRule(ByVal id As Long, _
+                        ByRef rules As Variant) _
+                        As String
+    If id = -1 Then
+        GetMatchedRule = "Not Found"
+    Else
+        GetMatchedRule = rules(id)
+    End If
 End Function
