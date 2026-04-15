@@ -3,368 +3,193 @@ Option Explicit
 '|--------------|-------------------------------------------------------------|
 '| Filename     | startTeamsMtgNow.vba                                        |
 '| EntryPoint   | StartTeamsMeetNow                                           |
-'| Purpose      | Launch a Teams instant meeting, automatically copy the       |
-'|              | join link, and open a new Outlook email with the link so     |
-'|              | the user can address and send manually.                      |
-'| Inputs       | None (fully automated; fallback prompt if auto-copy fails)   |
+'| Purpose      | Launch a Teams "Meet Now", then prompt the user to copy the  |
+'|              | join link and create a new Outlook email with it.            |
+'| Inputs       | None                                                        |
 '| Outputs      | New Outlook email with meeting link in body                  |
 '| Dependencies | Microsoft Teams desktop app (new), Windows Script Host       |
 '| By Name,Date | T.Sciple, 03/06/2026                                        |
 '
-' NOTES:
-'   - SendKeys-based UI automation is fragile. If Teams updates change
-'     keyboard shortcuts or layout, the navigation steps may need adjustment.
-'   - Timing constants (WAIT_*) may need tuning for slower machines.
-'   - The macro targets the NEW Teams desktop app (ms-teams.exe).
-'     If you still use classic Teams (Teams.exe), update TEAMS_PROCESS_NAME.
-'
-' AUTOMATED FLOW:
-'   1. Click Meet Now            (keyboard shortcut)
-'   2. Click Start Meeting       (Enter on pre-join screen)
-'   3. Click Join Now            (Enter on join confirmation)
-'   4. Copy Meeting Link         (navigate meeting toolbar via SendKeys)
-'   5. Create email with link    (Outlook MailItem)
+' FLOW:
+'   1. Launch Teams if needed, bring it to foreground
+'   2. Send Ctrl+Shift+R  (Meet Now shortcut in new Teams)
+'   3. Send Enter twice   (Start Meeting -> Join Now)
+'   4. Prompt user to copy the meeting link in Teams
+'   5. Create Outlook email with the link
 
-#If VBA7 Then
-    Private Declare PtrSafe Sub Sleep Lib "kernel32" ( _
-        ByVal dwMilliseconds As Long)
-#Else
-    Private Declare Sub Sleep Lib "kernel32" ( _
-        ByVal dwMilliseconds As Long)
-#End If
+Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
-' ── Timing constants (milliseconds) ── adjust for your system speed
-Private Const WAIT_SHORT  As Long = 1500
-Private Const WAIT_MEDIUM As Long = 3000
-Private Const WAIT_LONG   As Long = 5000
-Private Const WAIT_LAUNCH As Long = 12000
-
-' ── Process name for the NEW Teams desktop app
-Private Const TEAMS_PROCESS_NAME As String = "ms-teams.exe"
+Private Const TEAMS_PROCESS As String = "ms-teams.exe"
 
 
 '=============================================================================
-' EntryPoint – call this from a ribbon button or the Macros dialog
+' EntryPoint
 '=============================================================================
 Public Sub StartTeamsMeetNow()
     Dim wsh As Object
     Set wsh = CreateObject("WScript.Shell")
+    Debug.Print "===== StartTeamsMeetNow BEGIN " & Now & " ====="
 
-    ' ── Step 0: Open Teams if it is not already running ──
-    If Not IsTeamsRunning() Then
-        LaunchTeams wsh
+    ' ── Launch Teams if not running ──
+    If Not IsProcessRunning(TEAMS_PROCESS) Then
+        Debug.Print "Step 0: Teams not running - launching..."
+        wsh.Run "explorer shell:AppsFolder\MSTeams_8wekyb3d8bbwe!MSTeams"
+        Sleep 10000
+        Debug.Print "Step 0: launch wait complete"
+    Else
+        Debug.Print "Step 0: Teams already running"
     End If
 
-    ' ── Bring Teams to the foreground ──
-    If Not ActivateTeamsWindow(wsh) Then
-        MsgBox "Could not find the Teams window." & vbCrLf & _
-               "Please open Teams manually and try again.", _
-               vbExclamation, "Teams Not Found"
+    ' ── Activate Teams ──
+    Debug.Print "Step 0: activating Teams window..."
+    If Not TryActivate(wsh, 5) Then
+        Debug.Print "Step 0: FAILED - could not activate Teams"
+        MsgBox "Could not find the Teams window.", vbExclamation
         Exit Sub
     End If
-    Sleep WAIT_SHORT
+    Debug.Print "Step 0: Teams activated OK"
+    Sleep 1000
 
-    ' ── Step 1: Click Meet Now ──
-    ClickMeetNow
-    Sleep WAIT_LONG
+    ' ── Meet Now  (Ctrl+Shift+R) ──
+    Debug.Print "Step 1: Meet Now - sending Ctrl+Shift+R"
+    TryActivate wsh, 1
+    SendKeys "^+r", True
+    Sleep 4000
+    Debug.Print "Step 1: done"
 
-    ' ── Step 2: Click Start Meeting ──
-    ClickStartMeeting
-    Sleep WAIT_LONG
+    ' ── Start Meeting (Enter) ──
+    Debug.Print "Step 2: Start Meeting - sending ENTER"
+    TryActivate wsh, 1
+    SendKeys "{ENTER}", True
+    Sleep 4000
+    Debug.Print "Step 2: done"
 
-    ' ── Step 3: Click Join Now ──
-    ClickJoinNow
-    Sleep WAIT_LONG               ' let the meeting fully load
+    ' ── Join Now (Enter) ──
+    Debug.Print "Step 3: Join Now - sending ENTER"
+    TryActivate wsh, 1
+    SendKeys "{ENTER}", True
+    Sleep 3000
+    Debug.Print "Step 3: done"
 
-    ' ── Step 4: Copy Meeting Link ──
-    ClearClipboard
-    Sleep 500
-    CopyMeetingLinkAuto
-    Sleep WAIT_MEDIUM
-
-    ' ── Read link from clipboard ──
-    Dim meeting_link As String
-    meeting_link = Trim(ReadClipboard())
-
-    ' If auto-copy did not land a valid link, ask the user once
-    If Not IsValidTeamsLink(meeting_link) Then
-        meeting_link = PromptForMeetingLink()
-        If meeting_link = "" Then Exit Sub
+    ' ── Ask user to copy the link ──
+    Debug.Print "Step 4: prompting user to copy meeting link"
+    Dim link As String
+    link = GetLinkFromUser()
+    If link = "" Then
+        Debug.Print "Step 4: no valid link - EXIT"
+        Exit Sub
     End If
+    Debug.Print "Step 4: got link = [" & link & "]"
 
-    ' ── Step 5: Create a new email with the link ──
-    CreateMeetNowEmail meeting_link
+    ' ── Create the email ──
+    Debug.Print "Step 5: creating email"
+    Dim mi As Outlook.MailItem
+    Set mi = Application.CreateItem(olMailItem)
+    mi.Subject = "Meet Now"
+    mi.HTMLBody = "<p>Join the Teams meeting now:</p>" & _
+                  "<p><a href=""" & link & """>" & link & "</a></p>"
+    mi.Display
+    Debug.Print "Step 5: email displayed"
+    Debug.Print "===== StartTeamsMeetNow END " & Now & " ====="
 End Sub
 
 
 '=============================================================================
-' Check whether Teams is running via WMI process query
+' Prompt user to copy the meeting link in Teams, read it from clipboard.
 '=============================================================================
-Private Function IsTeamsRunning() As Boolean
-    Dim wmi As Object
-    Dim procs As Object
+Private Function GetLinkFromUser() As String
+    Dim clip As String
+    Dim attempt As Long
 
-    Set wmi = GetObject("winmgmts:\\.\root\cimv2")
-    Set procs = wmi.ExecQuery( _
-        "SELECT Name FROM Win32_Process WHERE Name = '" & TEAMS_PROCESS_NAME & "'")
+    For attempt = 1 To 3
+        MsgBox "In the Teams meeting:" & vbCrLf & vbCrLf & _
+               "  1. Click the (i) info icon  -or-" & vbCrLf & _
+               "     (...) More actions > Meeting info" & vbCrLf & _
+               "  2. Click  ""Copy meeting link""" & vbCrLf & vbCrLf & _
+               "Then click OK.", _
+               vbInformation, "Copy Meeting Link"
 
-    IsTeamsRunning = (procs.Count > 0)
+        clip = Trim(ReadClipboard())
+        Debug.Print "  GetLinkFromUser: attempt " & attempt & " clipboard = [" & Left$(clip, 80) & "]"
+        If IsTeamsLink(clip) Then
+            Debug.Print "  GetLinkFromUser: valid link found"
+            GetLinkFromUser = clip
+            Exit Function
+        End If
+        Debug.Print "  GetLinkFromUser: not a valid Teams link"
+    Next attempt
+
+    Debug.Print "  GetLinkFromUser: gave up after 3 attempts"
+    MsgBox "No valid Teams link found on the clipboard.", vbExclamation
+    GetLinkFromUser = ""
 End Function
 
 
 '=============================================================================
-' Launch the Teams desktop app
+' Try to activate the Teams window. Returns True on success.
 '=============================================================================
-Private Sub LaunchTeams(ByVal wsh As Object)
-    ' New Teams is a packaged (MSIX) app – launch via its App User Model ID.
-    ' For classic Teams, replace with the full path to Teams.exe.
-    wsh.Run "explorer shell:AppsFolder\MSTeams_8wekyb3d8bbwe!MSTeams"
-    Sleep WAIT_LAUNCH
-End Sub
-
-
-'=============================================================================
-' Bring the Teams window to the foreground
-'
-' AppActivate throws an error (rather than returning False) when the window
-' is not found, so we must wrap each attempt with error handling.
-' We also retry several times because Teams may still be loading.
-' The title is matched as a substring, so "Microsoft Teams" will match
-' window titles like "Microsoft Teams (work or school)" or
-' "John Doe | Microsoft Teams".
-'=============================================================================
-Private Function ActivateTeamsWindow(ByVal wsh As Object) As Boolean
+Private Function TryActivate(ByVal wsh As Object, ByVal retries As Long) As Boolean
     Dim titles As Variant
     titles = Array("Microsoft Teams", "Teams")
+    Dim attempt As Long, i As Long
 
-    Dim MAX_RETRIES As Long
-    MAX_RETRIES = 6                ' 6 retries x 2 s = 12 s total wait
-
-    Dim attempt As Long
-    Dim i As Long
-
-    For attempt = 1 To MAX_RETRIES
+    For attempt = 1 To retries
         For i = LBound(titles) To UBound(titles)
             On Error Resume Next
             wsh.AppActivate titles(i)
             If Err.Number = 0 Then
                 On Error GoTo 0
-                ActivateTeamsWindow = True
+                Sleep 300
+                Debug.Print "  TryActivate: matched '" & titles(i) & "' on attempt " & attempt
+                TryActivate = True
                 Exit Function
             End If
             Err.Clear
             On Error GoTo 0
         Next i
-        Sleep 2000               ' wait 2 s before retrying
+        If attempt < retries Then Sleep 2000
     Next attempt
-
-    ActivateTeamsWindow = False
+    Debug.Print "  TryActivate: FAILED after " & retries & " retries"
+    TryActivate = False
 End Function
 
 
 '=============================================================================
-' Step 1 – Click Meet Now
-'
-' Sends Ctrl+Shift+R which is the "Meet now" shortcut in new Teams.
-' This opens the pre-join / meeting-setup screen.
-'
-' ALTERNATIVE (if shortcut does not work on your build):
-'   SendKeys "^4", True       ' Ctrl+4 = open Calendar
-'   Sleep WAIT_MEDIUM
-'   ' Then Tab to the "Meet now" button and press Enter
+' Check if a process is running
 '=============================================================================
-Private Sub ClickMeetNow()
-    SendKeys "^+r", True
-End Sub
-
-
-'=============================================================================
-' Step 2 – Click Start Meeting on the pre-join screen
-'=============================================================================
-Private Sub ClickStartMeeting()
-    SendKeys "{ENTER}", True
-End Sub
-
-
-'=============================================================================
-' Step 3 – Click Join Now (second confirmation)
-'
-' Some Teams builds show a separate "Join now" button after "Start meeting".
-' If your build goes straight into the meeting after Step 2, this extra
-' Enter is harmless.
-'=============================================================================
-Private Sub ClickJoinNow()
-    SendKeys "{ENTER}", True
-End Sub
-
-
-'=============================================================================
-' Step 4 – Copy the meeting link from the in-meeting toolbar
-'
-' After joining, the meeting toolbar is visible at the top.  This routine
-' attempts to navigate it via keyboard to reach "Copy meeting link".
-'
-' APPROACH (new Teams - 2024/2025 builds):
-'   1. Dismiss any overlay popup (ESC)
-'   2. Ctrl+Shift+I  – opens the Meeting Info / Details side-pane
-'      (If this shortcut does not exist in your build, fall back to the
-'       Tab-through-toolbar approach below.)
-'   3. Tab through the pane to the "Copy meeting link" button
-'   4. Press Enter to copy the link to the clipboard
-'
-' Because the number of Tab presses can vary between builds, the main sub
-' falls back to a one-click InputBox if the clipboard does not contain a
-' valid Teams link after this routine runs.
-'=============================================================================
-Private Sub CopyMeetingLinkAuto()
-    ' Dismiss any welcome / tips overlay
-    SendKeys "{ESC}", True
-    Sleep WAIT_SHORT
-
-    ' ── Primary attempt: Ctrl+Shift+I for Meeting Info pane ──
-    SendKeys "^+i", True
-    Sleep WAIT_MEDIUM
-
-    ' Tab through the info pane looking for "Copy meeting link"
-    Dim i As Long
-    For i = 1 To 4
-        SendKeys "{TAB}", True
-        Sleep 400
-    Next i
-    SendKeys "{ENTER}", True      ' press the Copy button
-    Sleep WAIT_SHORT
-
-    ' Check if we got a valid link; if not, try the (...) menu approach
-    If IsValidTeamsLink(Trim(ReadClipboard())) Then Exit Sub
-
-    ' ── Fallback attempt: (...) More actions menu ──
-    ' Close whatever pane we opened
-    SendKeys "{ESC}", True
-    Sleep 500
-
-    ' Alt+F6 cycles focus between meeting regions (toolbar, content, panel)
-    SendKeys "%{F6}", True
-    Sleep WAIT_SHORT
-
-    ' Tab through toolbar buttons to reach (...) More actions
-    For i = 1 To 8
-        SendKeys "{TAB}", True
-        Sleep 300
-    Next i
-    SendKeys "{ENTER}", True      ' open the (...) menu
-    Sleep WAIT_SHORT
-
-    ' Arrow-down through the menu looking for "Meeting info" / "Copy join info"
-    For i = 1 To 6
-        SendKeys "{DOWN}", True
-        Sleep 300
-    Next i
-    SendKeys "{ENTER}", True      ' select the menu item
-    Sleep WAIT_MEDIUM
-
-    ' Tab to "Copy meeting link" in the pane that opens
-    For i = 1 To 4
-        SendKeys "{TAB}", True
-        Sleep 400
-    Next i
-    SendKeys "{ENTER}", True
-    Sleep WAIT_SHORT
-End Sub
-
-
-'=============================================================================
-' Fallback: simplified prompt when auto-copy did not capture the link.
-' The user just needs to click "Copy meeting link" in Teams, then click OK.
-'=============================================================================
-Private Function PromptForMeetingLink() As String
-    Dim meeting_link As String
-    Dim attempt As Long
-    Const MAX_ATTEMPTS As Long = 3
-
-    For attempt = 1 To MAX_ATTEMPTS
-        MsgBox "The meeting link was not captured automatically." & vbCrLf & vbCrLf & _
-               "In the Teams meeting window:" & vbCrLf & _
-               "  1. Click (...) More actions  >  Meeting info" & vbCrLf & _
-               "  2. Click  'Copy meeting link'" & vbCrLf & vbCrLf & _
-               "Then click OK here.", _
-               vbInformation, "Copy Meeting Link  (attempt " & attempt & " of " & MAX_ATTEMPTS & ")"
-
-        meeting_link = Trim(ReadClipboard())
-        If IsValidTeamsLink(meeting_link) Then
-            PromptForMeetingLink = meeting_link
-            Exit Function
-        End If
-    Next attempt
-
-    MsgBox "Could not get a valid Teams meeting link after " & MAX_ATTEMPTS & " attempts." & vbCrLf & _
-           "The email will not be created.", _
-           vbExclamation, "No Meeting Link"
-    PromptForMeetingLink = ""
+Private Function IsProcessRunning(ByVal procName As String) As Boolean
+    Dim wmi As Object, procs As Object
+    Set wmi = GetObject("winmgmts:\\.\root\cimv2")
+    Set procs = wmi.ExecQuery("SELECT Name FROM Win32_Process WHERE Name='" & procName & "'")
+    IsProcessRunning = (procs.Count > 0)
 End Function
 
 
 '=============================================================================
-' Validate that a string looks like a Teams meeting URL
+' Validate a Teams meeting URL
 '=============================================================================
-Private Function IsValidTeamsLink(ByVal url As String) As Boolean
+Private Function IsTeamsLink(ByVal url As String) As Boolean
     If Left$(LCase$(url), 8) <> "https://" Then
-        IsValidTeamsLink = False
-        Exit Function
-    End If
-
-    If InStr(1, url, "teams.microsoft.com", vbTextCompare) > 0 Or _
-       InStr(1, url, "teams.live.com", vbTextCompare) > 0 Then
-        IsValidTeamsLink = True
+        IsTeamsLink = False
+    ElseIf InStr(1, url, "teams.microsoft.com", vbTextCompare) > 0 Or _
+           InStr(1, url, "teams.live.com", vbTextCompare) > 0 Then
+        IsTeamsLink = True
     Else
-        IsValidTeamsLink = False
+        IsTeamsLink = False
     End If
 End Function
 
 
 '=============================================================================
-' Clear the Windows clipboard so stale content does not get mistaken for
-' a freshly copied meeting link
-'=============================================================================
-Private Sub ClearClipboard()
-    On Error Resume Next
-    Dim data_obj As Object
-    Set data_obj = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
-    data_obj.SetText ""
-    data_obj.PutInClipboard
-    On Error GoTo 0
-End Sub
-
-
-'=============================================================================
-' Read text from the Windows clipboard via MSForms.DataObject (late binding)
+' Read text from the Windows clipboard
 '=============================================================================
 Private Function ReadClipboard() As String
-    On Error GoTo Err_ReadClipboard
-
-    ' Late-bind the MSForms.DataObject by its CLSID
-    Dim data_obj As Object
-    Set data_obj = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
-    data_obj.GetFromClipboard
-    ReadClipboard = data_obj.GetText
+    On Error GoTo ErrOut
+    Dim obj As Object
+    Set obj = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+    obj.GetFromClipboard
+    ReadClipboard = obj.GetText
     Exit Function
-
-Err_ReadClipboard:
+ErrOut:
     ReadClipboard = ""
 End Function
-
-
-'=============================================================================
-' Create a new Outlook email with the meeting link
-'=============================================================================
-Private Sub CreateMeetNowEmail(ByVal meetingLink As String)
-    Dim mail_item As Outlook.MailItem
-    Set mail_item = Application.CreateItem(olMailItem)
-
-    mail_item.Subject = "Meet Now"
-    mail_item.HTMLBody = "<p>Join the Teams meeting now:</p>" & _
-                         "<p><a href=""" & meetingLink & """>" & meetingLink & "</a></p>" & _
-                         "<br><p>Click the link above or paste it into your browser.</p>"
-
-    ' Display the email so the user can address and send manually
-    mail_item.Display
-End Sub
